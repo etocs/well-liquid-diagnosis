@@ -66,18 +66,6 @@ const WellboreDiagram: React.FC<Props> = ({ well, maxDepth = 2000 }) => {
             }} />
           )}
 
-          {/* 泵位置标记 */}
-          <div style={{
-            position: 'absolute',
-            bottom: `${liquidPct}%`,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: 20,
-            height: 6,
-            background: '#faad14',
-            borderRadius: 2,
-          }} />
-
           {/* 传感器点 */}
           {[20, 40, 60, 80].map(pct => (
             <div key={pct} style={{

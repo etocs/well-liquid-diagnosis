@@ -54,7 +54,7 @@ const StatusCard: React.FC<Props> = ({ well, onClick, selected }) => {
       </div>
 
       <div style={{ color: '#8c9eb5', fontSize: 11, marginBottom: 4 }}>
-        {well.platform}
+        {well.zone}
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
@@ -79,10 +79,6 @@ const StatusCard: React.FC<Props> = ({ well, onClick, selected }) => {
         }}>
           {STATUS_LABELS[well.status]}
         </div>
-      </div>
-
-      <div style={{ color: '#8c9eb5', fontSize: 11, marginTop: 6 }}>
-        泵: {well.pumpName}
       </div>
 
       <style>{`

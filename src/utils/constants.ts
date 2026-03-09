@@ -1,5 +1,5 @@
-// 平台列表
-export const PLATFORMS = ['乌石17-2平台', '乌石23-5平台', '乌石16-1平台'];
+// 区域列表
+export const ZONES = ['A区', 'B区', 'C区'];
 
 // 故障类型
 export const FAULT_TYPES = ['含气', '高温', '过载', '欠载', '绝缘降低', '积液'];

@@ -22,8 +22,8 @@ export async function getAlarmRecords(params: QueryParams): Promise<{ list: Alar
   await delay();
   let list = [...alarmRecords];
 
-  if (params.platform) {
-    list = list.filter(a => a.platform === params.platform);
+  if (params.zone) {
+    list = list.filter(a => a.zone === params.zone);
   }
   if (params.wellName) {
     list = list.filter(a => a.wellName.includes(params.wellName!));

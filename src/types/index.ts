@@ -11,8 +11,7 @@ export type ProcessResult = 'processed' | 'unprocessed';
 export interface Well {
   id: string;
   name: string;
-  platform: string;
-  pumpName: string;
+  zone: string;
   status: WellStatus;
   liquidHeight: number; // 积液高度 m
 }
@@ -22,8 +21,7 @@ export interface AlarmRecord {
   id: string;
   wellId: string;
   wellName: string;
-  platform: string;
-  pumpName: string;
+  zone: string;
   faultType: string;
   faultLevel: FaultLevel;
   faultTime: string;
@@ -83,7 +81,7 @@ export interface Statistics {
 
 // 页面查询参数
 export interface QueryParams {
-  platform?: string;
+  zone?: string;
   wellName?: string;
   startTime?: string;
   endTime?: string;

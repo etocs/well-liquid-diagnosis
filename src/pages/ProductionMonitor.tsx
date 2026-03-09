@@ -73,7 +73,7 @@ const ProductionMonitor: React.FC = () => {
                     {selectedWell.name} 运行监测曲线
                   </span>
                   <span style={{ color: '#8c9eb5', fontSize: 13, marginLeft: 12 }}>
-                    泵: {selectedWell.pumpName}
+                    {selectedWell.zone}
                   </span>
                 </div>
                 <Tag color={STATUS_COLORS[selectedWell.status]} style={{ fontSize: 13 }}>

@@ -6,7 +6,7 @@ import {
   FAULT_LEVEL_LABELS,
   FAULT_LEVEL_COLORS,
   PROCESS_RESULT_LABELS,
-  PLATFORMS,
+  ZONES,
 } from '../../utils/constants';
 
 interface Props {
@@ -16,7 +16,7 @@ interface Props {
   pageSize: number;
   loading?: boolean;
   onPageChange: (page: number, size: number) => void;
-  onFilter: (platform: string, wellName: string) => void;
+  onFilter: (zone: string, wellName: string) => void;
   onDetail?: (record: AlarmRecord) => void;
   onProcess?: (record: AlarmRecord) => void;
 }
@@ -32,11 +32,11 @@ const AlarmTable: React.FC<Props> = ({
   onDetail,
   onProcess,
 }) => {
-  const [platform, setPlatform] = React.useState('');
+  const [zone, setZone] = React.useState('');
   const [wellName, setWellName] = React.useState('');
 
   const handleSearch = () => {
-    onFilter(platform, wellName);
+    onFilter(zone, wellName);
   };
 
   const columns = [
@@ -47,24 +47,18 @@ const AlarmTable: React.FC<Props> = ({
       render: (_: unknown, __: AlarmRecord, index: number) => (pageNum - 1) * pageSize + index + 1,
     },
     {
-      title: '隶属平台',
-      dataIndex: 'platform',
-      key: 'platform',
-      width: 130,
+      title: '区域',
+      dataIndex: 'zone',
+      key: 'zone',
+      width: 90,
       render: (text: string) => <span style={{ color: '#8c9eb5' }}>{text}</span>,
     },
     {
-      title: '井名称',
+      title: '井管名称',
       dataIndex: 'wellName',
       key: 'wellName',
       width: 160,
       render: (text: string) => <span style={{ color: '#00ffff' }}>{text}</span>,
-    },
-    {
-      title: '泵名',
-      dataIndex: 'pumpName',
-      key: 'pumpName',
-      width: 120,
     },
     {
       title: '故障类型',
@@ -141,15 +135,15 @@ const AlarmTable: React.FC<Props> = ({
       {/* 筛选器 */}
       <div className="filter-bar">
         <Select
-          placeholder="全部平台"
-          value={platform || undefined}
-          onChange={v => setPlatform(v || '')}
+          placeholder="全部区域"
+          value={zone || undefined}
+          onChange={v => setZone(v || '')}
           allowClear
-          style={{ width: 150 }}
-          options={PLATFORMS.map(p => ({ label: p, value: p }))}
+          style={{ width: 130 }}
+          options={ZONES.map(z => ({ label: z, value: z }))}
         />
         <Input
-          placeholder="输入井名搜索"
+          placeholder="输入井管名搜索"
           value={wellName}
           onChange={e => setWellName(e.target.value)}
           style={{ width: 180 }}
@@ -168,7 +162,7 @@ const AlarmTable: React.FC<Props> = ({
         rowKey="id"
         loading={loading}
         pagination={false}
-        scroll={{ x: 1000 }}
+        scroll={{ x: 900 }}
         size="small"
       />
 

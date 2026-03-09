@@ -14,15 +14,14 @@ const AlarmManagement: React.FC = () => {
   const [pageNum, setPageNum] = useState(1);
   const [pageSize, setPageSize] = useState(5);
   const [loading, setLoading] = useState(false);
-  const [platform, setPlatform] = useState('');
+  const [zone, setZone] = useState('');
   const [wellName, setWellName] = useState('');
   const [selectedRecord, setSelectedRecord] = useState<AlarmRecord | null>(null);
   const [monitorData, setMonitorData] = useState<MonitorDataPoint[]>([]);
-  const [detailVisible, setDetailVisible] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
-    const result = await getAlarmRecords({ platform, wellName, pageNum, pageSize });
+    const result = await getAlarmRecords({ zone, wellName, pageNum, pageSize });
     setRecords(result.list);
     setTotal(result.total);
     setLoading(false);
@@ -30,10 +29,10 @@ const AlarmManagement: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-  }, [pageNum, pageSize, platform, wellName]);
+  }, [pageNum, pageSize, zone, wellName]);
 
-  const handleFilter = (p: string, w: string) => {
-    setPlatform(p);
+  const handleFilter = (z: string, w: string) => {
+    setZone(z);
     setWellName(w);
     setPageNum(1);
   };
@@ -50,7 +49,7 @@ const AlarmManagement: React.FC = () => {
         {/* 左侧：预警表格 */}
         <Col xs={24} xl={selectedRecord ? 12 : 24}>
           <div className="panel-card" style={{ marginBottom: 0 }}>
-            <div className="panel-title">电潜泵故障预警</div>
+            <div className="panel-title">井管故障预警</div>
             <AlarmTable
               data={records}
               total={total}

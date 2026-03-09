@@ -3,7 +3,7 @@ import { Table, Tag, Select, DatePicker, Input, Button, Pagination } from 'antd'
 import { SearchOutlined } from '@ant-design/icons';
 import type { AlarmRecord } from '../types';
 import { getAlarmRecords } from '../services/api';
-import { FAULT_LEVEL_LABELS, FAULT_LEVEL_COLORS, PROCESS_RESULT_LABELS, PLATFORMS } from '../utils/constants';
+import { FAULT_LEVEL_LABELS, FAULT_LEVEL_COLORS, PROCESS_RESULT_LABELS, ZONES } from '../utils/constants';
 
 const { RangePicker } = DatePicker;
 
@@ -13,14 +13,14 @@ const AlarmHistory: React.FC = () => {
   const [pageNum, setPageNum] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [loading, setLoading] = useState(false);
-  const [platform, setPlatform] = useState('');
+  const [zone, setZone] = useState('');
   const [wellName, setWellName] = useState('');
   const [dateRange, setDateRange] = useState<[string, string] | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
     const result = await getAlarmRecords({
-      platform,
+      zone,
       wellName,
       startTime: dateRange?.[0],
       endTime: dateRange?.[1],
@@ -49,21 +49,16 @@ const AlarmHistory: React.FC = () => {
       render: (_: unknown, __: AlarmRecord, index: number) => (pageNum - 1) * pageSize + index + 1,
     },
     {
-      title: '隶属平台',
-      dataIndex: 'platform',
-      key: 'platform',
+      title: '区域',
+      dataIndex: 'zone',
+      key: 'zone',
       render: (text: string) => <span style={{ color: '#8c9eb5' }}>{text}</span>,
     },
     {
-      title: '井名称',
+      title: '井管名称',
       dataIndex: 'wellName',
       key: 'wellName',
       render: (text: string) => <span style={{ color: '#00ffff' }}>{text}</span>,
-    },
-    {
-      title: '泵名',
-      dataIndex: 'pumpName',
-      key: 'pumpName',
     },
     {
       title: '故障类型',
@@ -113,12 +108,12 @@ const AlarmHistory: React.FC = () => {
         {/* 筛选器 */}
         <div className="filter-bar">
           <Select
-            placeholder="选择平台"
-            value={platform || undefined}
-            onChange={v => setPlatform(v || '')}
+            placeholder="选择区域"
+            value={zone || undefined}
+            onChange={v => setZone(v || '')}
             allowClear
-            style={{ width: 150 }}
-            options={PLATFORMS.map(p => ({ label: p, value: p }))}
+            style={{ width: 130 }}
+            options={ZONES.map(z => ({ label: z, value: z }))}
           />
           <RangePicker
             onChange={(_, dateStrings) => {
@@ -132,7 +127,7 @@ const AlarmHistory: React.FC = () => {
             style={{ width: 280 }}
           />
           <Input
-            placeholder="输入井名搜索"
+            placeholder="输入井管名搜索"
             value={wellName}
             onChange={e => setWellName(e.target.value)}
             style={{ width: 180 }}
@@ -151,7 +146,7 @@ const AlarmHistory: React.FC = () => {
           rowKey="id"
           loading={loading}
           pagination={false}
-          scroll={{ x: 1100 }}
+          scroll={{ x: 1000 }}
           size="small"
         />
 

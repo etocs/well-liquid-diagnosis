@@ -10,7 +10,7 @@ import {
 import { Badge, Tooltip } from 'antd';
 
 const NAV_ITEMS = [
-  { key: '/', label: '平台首页' },
+  { key: '/', label: '系统首页' },
   { key: '/monitor', label: '生产监控' },
   { key: '/report', label: '数据报表' },
   { key: '/alarm', label: '异常管理' },
