@@ -1,35 +1,28 @@
 {
   "name": "well-liquid-diagnosis",
+  "private": true,
   "version": "1.0.0",
-  "description": "井下积液工况诊断系统 - 基于电流监测与水敏电阻网的积液诊断平台",
-  "main": "index.js",
+  "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "tsc && vite build",
     "preview": "vite preview"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/etocs/well-liquid-diagnosis.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/etocs/well-liquid-diagnosis/issues"
-  },
-  "homepage": "https://github.com/etocs/well-liquid-diagnosis#readme",
-  "devDependencies": {
-    "@vitejs/plugin-vue": "^6.0.4",
-    "vite": "^7.3.1"
-  },
   "dependencies": {
-    "@element-plus/icons-vue": "^2.3.2",
-    "axios": "^1.13.6",
-    "echarts": "^6.0.0",
-    "element-plus": "^2.13.5",
-    "vue": "^3.5.29",
-    "vue-router": "^5.0.3"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.21.0",
+    "antd": "^5.12.0",
+    "@ant-design/icons": "^5.2.6",
+    "echarts": "^5.4.3",
+    "echarts-for-react": "^3.0.2",
+    "dayjs": "^1.11.10"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.45",
+    "@types/react-dom": "^18.2.18",
+    "@vitejs/plugin-react": "^4.2.1",
+    "typescript": "^5.2.2",
+    "vite": "^5.0.8"
   }
 }
