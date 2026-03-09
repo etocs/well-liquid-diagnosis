@@ -28,14 +28,14 @@ const WellboreDiagram: React.FC<Props> = ({ well, maxDepth = 60 }) => {
 
       {/* 井筒图示 */}
       <div style={{ display: 'flex', alignItems: 'stretch', gap: 4 }}>
-        {/* 深度标尺 - now in mm */}
+        {/* 深度标尺 - now in mm (from top to bottom: 60mm to 0mm) */}
         <div style={{
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
           paddingBottom: 4,
         }}>
-          {[0, 15, 30, 45, 60].map(d => (
+          {[60, 45, 30, 15, 0].map(d => (
             <span key={d} style={{ color: '#8c9eb5', fontSize: 10, textAlign: 'right' }}>{d}mm</span>
           ))}
         </div>
