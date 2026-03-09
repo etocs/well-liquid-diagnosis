@@ -7,6 +7,7 @@ import {
   FAULT_LEVEL_COLORS,
   PROCESS_RESULT_LABELS,
   PROCESS_RESULT,
+  TURBINE_STATUS_LABELS,
   ZONES,
 } from '../../utils/constants';
 
@@ -65,19 +66,33 @@ const AlarmTable: React.FC<Props> = ({
       title: '故障类型',
       dataIndex: 'faultType',
       key: 'faultType',
-      width: 80,
-      render: (text: string) => <Tag color="#1890ff">{text}</Tag>,
+      width: 120,
+      render: (text: string) => {
+        const isTurbine = text.includes('涡轮机');
+        return <Tag color={isTurbine ? '#52c41a' : '#1890ff'}>{text}</Tag>;
+      },
     },
     {
-      title: '故障等级',
-      dataIndex: 'faultLevel',
-      key: 'faultLevel',
+      title: '故障详情',
+      key: 'faultDetail',
       width: 110,
-      render: (level: string) => (
-        <Tag color={FAULT_LEVEL_COLORS[level]} style={{ fontSize: 12 }}>
-          {FAULT_LEVEL_LABELS[level]}
-        </Tag>
-      ),
+      render: (_: unknown, record: AlarmRecord) => {
+        if (record.faultLevel) {
+          return (
+            <Tag color={FAULT_LEVEL_COLORS[record.faultLevel]} style={{ fontSize: 12 }}>
+              {FAULT_LEVEL_LABELS[record.faultLevel]}
+            </Tag>
+          );
+        } else if (record.turbineStatus) {
+          const colorMap = { normal: '#52c41a', unstable: '#faad14', stopped: '#ff4d4f' };
+          return (
+            <Tag color={colorMap[record.turbineStatus]} style={{ fontSize: 12 }}>
+              {TURBINE_STATUS_LABELS[record.turbineStatus]}
+            </Tag>
+          );
+        }
+        return '-';
+      },
     },
     {
       title: '故障时间',

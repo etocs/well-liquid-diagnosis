@@ -157,9 +157,11 @@ const Header: React.FC = () => {
             }}
           >
             {item.key === '/alarm' ? (
-              <Badge count={2} size="small" offset={[6, -2]}>
-                {item.label}
-              </Badge>
+              alarmCount > 0 ? (
+                <Badge count={alarmCount} size="small" offset={[6, -2]}>
+                  {item.label}
+                </Badge>
+              ) : item.label
             ) : item.label}
           </button>
         ))}

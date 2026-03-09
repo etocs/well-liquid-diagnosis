@@ -7,6 +7,7 @@ import { getAlarmRecords, getMonitorData, processAlarm } from '../services/api';
 import { FAULT_LEVEL_LABELS, FAULT_LEVEL_COLORS, PROCESS_RESULT } from '../utils/constants';
 import { useAlarmSound } from '../hooks/useAlarmSound';
 import { formatDateTime } from '../utils/date';
+import { useAlarm } from '../contexts/AlarmContext';
 
 const AlarmManagement: React.FC = () => {
   const [records, setRecords] = useState<AlarmRecord[]>([]);
@@ -18,6 +19,7 @@ const AlarmManagement: React.FC = () => {
   const [wellName, setWellName] = useState('');
   const [selectedRecord, setSelectedRecord] = useState<AlarmRecord | null>(null);
   const [monitorData, setMonitorData] = useState<MonitorDataPoint[]>([]);
+  const { refreshAlarmCount } = useAlarm();
   
   // Check if there are any unprocessed alarms to trigger alarm sound
   const hasUnprocessedAlarms = records.some(r => r.processResult === PROCESS_RESULT.UNPROCESSED);
@@ -56,6 +58,9 @@ const AlarmManagement: React.FC = () => {
       const result = await getAlarmRecords({ zone, wellName, pageNum, pageSize });
       setRecords(result.list);
       setTotal(result.total);
+      
+      // Refresh alarm count in context
+      refreshAlarmCount();
       
       // If the processed record was selected, update it
       if (selectedRecord?.id === record.id) {
@@ -123,10 +128,19 @@ const AlarmManagement: React.FC = () => {
                     </div>
                   </Col>
                   <Col span={12}>
-                    <div style={{ color: '#8c9eb5', fontSize: 11 }}>故障等级</div>
-                    <Tag color={FAULT_LEVEL_COLORS[selectedRecord.faultLevel]} style={{ fontSize: 12 }}>
-                      {FAULT_LEVEL_LABELS[selectedRecord.faultLevel]}
-                    </Tag>
+                    <div style={{ color: '#8c9eb5', fontSize: 11 }}>故障详情</div>
+                    {selectedRecord.faultLevel ? (
+                      <Tag color={FAULT_LEVEL_COLORS[selectedRecord.faultLevel]} style={{ fontSize: 12 }}>
+                        {FAULT_LEVEL_LABELS[selectedRecord.faultLevel]}
+                      </Tag>
+                    ) : selectedRecord.turbineStatus ? (
+                      <Tag 
+                        color={selectedRecord.turbineStatus === 'normal' ? '#52c41a' : selectedRecord.turbineStatus === 'unstable' ? '#faad14' : '#ff4d4f'} 
+                        style={{ fontSize: 12 }}
+                      >
+                        {selectedRecord.turbineStatus === 'normal' ? '正常' : selectedRecord.turbineStatus === 'unstable' ? '不稳定' : '停止'}
+                      </Tag>
+                    ) : '-'}
                   </Col>
                   <Col span={24}>
                     <div style={{ color: '#8c9eb5', fontSize: 11 }}>故障区间</div>

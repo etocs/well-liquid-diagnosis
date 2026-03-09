@@ -1,17 +1,16 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import type { Well } from '../types';
+import { getAlarmRecords } from '../services/api';
 
 interface AlarmContextType {
   hasActiveAlarm: boolean;
   alarmCount: number;
   checkAlarms: (wells: Well[]) => void;
   acknowledgeAlarms: () => void;
+  refreshAlarmCount: () => void;
 }
 
 const AlarmContext = createContext<AlarmContextType | undefined>(undefined);
-
-// Threshold for liquid height alarm (in meters)
-const ALARM_THRESHOLD = 500;
 
 export const AlarmProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [hasActiveAlarm, setHasActiveAlarm] = useState(false);
@@ -72,21 +71,37 @@ export const AlarmProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
   }, [hasActiveAlarm]);
 
-  const checkAlarms = useCallback((wells: Well[]) => {
-    // Filter wells with valid liquid height above threshold
-    const alarmedWells = wells.filter(well => 
-      typeof well.liquidHeight === 'number' && 
-      !isNaN(well.liquidHeight) && 
-      well.liquidHeight > ALARM_THRESHOLD
-    );
-    const count = alarmedWells.length;
-    
-    setAlarmCount(count);
-    setHasActiveAlarm(count > 0);
+  // Fetch unprocessed alarm count from API
+  const refreshAlarmCount = useCallback(async () => {
+    try {
+      const result = await getAlarmRecords({ pageNum: 1, pageSize: 1000 });
+      const unprocessedCount = result.list.filter(alarm => alarm.processResult === 'unprocessed').length;
+      
+      setAlarmCount(unprocessedCount);
+      setHasActiveAlarm(unprocessedCount > 0);
+    } catch (error) {
+      console.error('Failed to fetch alarm count:', error);
+    }
   }, []);
 
+  // Refresh alarm count on mount and periodically
+  useEffect(() => {
+    refreshAlarmCount();
+    const intervalId = window.setInterval(refreshAlarmCount, 30000); // Refresh every 30 seconds
+    
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [refreshAlarmCount]);
+
+  const checkAlarms = useCallback((wells: Well[]) => {
+    // This method is kept for backwards compatibility but now triggers a refresh
+    refreshAlarmCount();
+  }, [refreshAlarmCount]);
+
   const acknowledgeAlarms = useCallback(() => {
-    setHasActiveAlarm(false);
+    // Don't just acknowledge - the alarm should disappear only when processed
+    // This now just navigates to alarm page, alarm will stop when all processed
     if (alarmIntervalRef.current) {
       clearInterval(alarmIntervalRef.current);
       alarmIntervalRef.current = null;
@@ -94,7 +109,7 @@ export const AlarmProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   return (
-    <AlarmContext.Provider value={{ hasActiveAlarm, alarmCount, checkAlarms, acknowledgeAlarms }}>
+    <AlarmContext.Provider value={{ hasActiveAlarm, alarmCount, checkAlarms, acknowledgeAlarms, refreshAlarmCount }}>
       {children}
     </AlarmContext.Provider>
   );
