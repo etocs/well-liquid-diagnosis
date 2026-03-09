@@ -11,6 +11,9 @@ import AlarmHistory from './pages/AlarmHistory';
 import CurrentMonitor from './pages/CurrentMonitor';
 import LiquidDiagnosis from './pages/LiquidDiagnosis';
 import PlaceholderPage from './pages/PlaceholderPage';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import { isAuthenticated } from './utils/auth';
 
 const antdTheme = {
   algorithm: theme.darkAlgorithm,
@@ -61,12 +64,29 @@ const antdTheme = {
   },
 };
 
+// Route guard: redirect to /login if not authenticated
+const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return isAuthenticated() ? <>{children}</> : <Navigate to="/login" replace />;
+};
+
 const App: React.FC = () => {
   return (
     <ConfigProvider locale={zhCN} theme={antdTheme}>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<MainLayout />}>
+          {/* Public routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+
+          {/* Protected routes */}
+          <Route
+            path="/"
+            element={
+              <PrivateRoute>
+                <MainLayout />
+              </PrivateRoute>
+            }
+          >
             <Route index element={<Home />} />
             <Route path="monitor" element={<ProductionMonitor />} />
             <Route path="monitor/current" element={<CurrentMonitor />} />

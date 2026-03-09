@@ -31,16 +31,11 @@ export interface AlarmRecord {
   faultRange?: string;
 }
 
-// 实时监测数据点
+// 实时监测数据点 (仅电流数据)
 export interface MonitorDataPoint {
   time: string;
-  current: number;       // 电流 A
-  predictCurrent: number; // 预测电流 A
-  voltage: number;       // 电压 V
-  frequency: number;     // 电机频率 Hz
-  intakePressure: number;  // 吸入口压力 MPa
-  intakeTemp: number;    // 吸入口温度 °C
-  motorTemp: number;     // 电机绕组温度 °C
+  current: number;        // 实测电流 A
+  predictCurrent: number; // 额定/参考电流 A
 }
 
 // 水敏电阻传感器数据

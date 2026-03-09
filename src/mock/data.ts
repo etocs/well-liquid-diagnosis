@@ -109,106 +109,64 @@ export const alarmRecords: AlarmRecord[] = [
   },
 ];
 
-// ============ 监测数据 ============
+// ============ 监测数据 (仅电流) ============
 const DATA_COUNT = 60;
 const timeLabels = generateTimeLabels(DATA_COUNT);
 
 function buildMonitorData(
   currentData: number[],
   predictCurrentData: number[],
-  voltageData: number[],
-  freqData: number[],
-  pressureData: number[],
-  intakeTempData: number[],
-  motorTempData: number[]
 ): MonitorDataPoint[] {
   return timeLabels.map((time, i) => ({
     time,
     current: currentData[i],
     predictCurrent: predictCurrentData[i],
-    voltage: voltageData[i],
-    frequency: freqData[i],
-    intakePressure: pressureData[i],
-    intakeTemp: intakeTempData[i],
-    motorTemp: motorTempData[i],
   }));
 }
+
+// 额定电流基准（各井统一 19A）
+const RATED = 19;
 
 // W001 正常工况
 export const monitorDataW001: MonitorDataPoint[] = buildMonitorData(
   generateNoisyData(18.5, DATA_COUNT, 0.4),
-  generateNoisyData(18.8, DATA_COUNT, 0.2),
-  generateNoisyData(1820, DATA_COUNT, 20),
-  generateNoisyData(45, DATA_COUNT, 1),
-  generateNoisyData(10.2, DATA_COUNT, 0.3),
-  generateNoisyData(98, DATA_COUNT, 2),
-  generateNoisyData(102, DATA_COUNT, 2)
+  Array(DATA_COUNT).fill(RATED)
 );
 
 // W002 含气预警（电流波动大）
 export const monitorDataW002: MonitorDataPoint[] = buildMonitorData(
   generateNoisyData(17.5, DATA_COUNT, 2.5),
-  generateNoisyData(18.5, DATA_COUNT, 0.3),
-  generateNoisyData(1780, DATA_COUNT, 50),
-  generateNoisyData(44, DATA_COUNT, 2),
-  generateNoisyData(9.8, DATA_COUNT, 0.5),
-  generateNoisyData(100, DATA_COUNT, 4),
-  generateNoisyData(105, DATA_COUNT, 3)
+  Array(DATA_COUNT).fill(RATED)
 );
 
 // W003 严重积液（电流突降）
 export const monitorDataW003: MonitorDataPoint[] = buildMonitorData(
   generateAnomalyData(18.0, DATA_COUNT, 0.5),
-  generateNoisyData(18.5, DATA_COUNT, 0.2),
-  generateAnomalyData(1800, DATA_COUNT, 30),
-  generateAnomalyData(45, DATA_COUNT, 1),
-  generateAnomalyData(10.5, DATA_COUNT, 0.3),
-  generateNoisyData(110, DATA_COUNT, 3),
-  generateNoisyData(108, DATA_COUNT, 3)
+  Array(DATA_COUNT).fill(RATED)
 );
 
 // W004 正常工况
 export const monitorDataW004: MonitorDataPoint[] = buildMonitorData(
   generateNoisyData(19.0, DATA_COUNT, 0.3),
-  generateNoisyData(19.2, DATA_COUNT, 0.2),
-  generateNoisyData(1850, DATA_COUNT, 15),
-  generateNoisyData(46, DATA_COUNT, 0.8),
-  generateNoisyData(10.8, DATA_COUNT, 0.2),
-  generateNoisyData(96, DATA_COUNT, 1.5),
-  generateNoisyData(99, DATA_COUNT, 1.5)
+  Array(DATA_COUNT).fill(RATED)
 );
 
 // W005 欠载预警
 export const monitorDataW005: MonitorDataPoint[] = buildMonitorData(
   generateNoisyData(14.5, DATA_COUNT, 0.8),
-  generateNoisyData(18.5, DATA_COUNT, 0.3),
-  generateNoisyData(1750, DATA_COUNT, 30),
-  generateNoisyData(43, DATA_COUNT, 1.5),
-  generateNoisyData(9.5, DATA_COUNT, 0.4),
-  generateNoisyData(95, DATA_COUNT, 3),
-  generateNoisyData(98, DATA_COUNT, 3)
+  Array(DATA_COUNT).fill(RATED)
 );
 
 // W006 正常工况
 export const monitorDataW006: MonitorDataPoint[] = buildMonitorData(
   generateNoisyData(18.2, DATA_COUNT, 0.35),
-  generateNoisyData(18.5, DATA_COUNT, 0.2),
-  generateNoisyData(1810, DATA_COUNT, 18),
-  generateNoisyData(45.5, DATA_COUNT, 0.9),
-  generateNoisyData(10.3, DATA_COUNT, 0.25),
-  generateNoisyData(99, DATA_COUNT, 2),
-  generateNoisyData(101, DATA_COUNT, 2)
+  Array(DATA_COUNT).fill(RATED)
 );
 
 // W007 严重积液
 export const monitorDataW007: MonitorDataPoint[] = buildMonitorData(
   generateAnomalyData(17.5, DATA_COUNT, 0.6),
-  generateNoisyData(18.8, DATA_COUNT, 0.25),
-  generateAnomalyData(1760, DATA_COUNT, 40),
-  generateAnomalyData(44, DATA_COUNT, 1.2),
-  generateAnomalyData(10.0, DATA_COUNT, 0.35),
-  generateNoisyData(115, DATA_COUNT, 4),
-  generateNoisyData(112, DATA_COUNT, 4)
+  Array(DATA_COUNT).fill(RATED)
 );
 
 export const monitorDataMap: Record<string, MonitorDataPoint[]> = {

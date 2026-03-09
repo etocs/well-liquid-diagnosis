@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Row, Col, Tag } from 'antd';
 import CurrentChart from '../components/Charts/CurrentChart';
-import VoltageFreqChart from '../components/Charts/VoltageFreqChart';
-import PressureTempChart from '../components/Charts/PressureTempChart';
 import StatusCard from '../components/Dashboard/StatusCard';
 import type { Well, MonitorDataPoint } from '../types';
 import { getWells, getMonitorData } from '../services/api';
-import { STATUS_COLORS } from '../utils/constants';
+import { STATUS_COLORS, CURRENT_THRESHOLDS } from '../utils/constants';
+import { diagnoseByCurrent } from '../utils/diagnosis';
 
 const ProductionMonitor: React.FC = () => {
   const [wells, setWells] = useState<Well[]>([]);
@@ -33,13 +32,20 @@ const ProductionMonitor: React.FC = () => {
     }
   }, [selectedWell]);
 
+  const diagnosis = monitorData.length > 0 ? diagnoseByCurrent(monitorData) : null;
+  const latest = monitorData.length > 0 ? monitorData[monitorData.length - 1] : null;
+  const sliced = monitorData.slice(-10);
+  const avgCurrent = sliced.length > 0
+    ? (sliced.reduce((s, d) => s + d.current, 0) / sliced.length).toFixed(2)
+    : '--';
+
   return (
     <div className="page-container">
       <Row gutter={16}>
-        {/* 左侧：井筒列表 */}
+        {/* 左侧：井管列表 */}
         <Col xs={24} lg={6}>
           <div className="panel-card" style={{ marginBottom: 0 }}>
-            <div className="panel-title">井筒列表</div>
+            <div className="panel-title">井管列表</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {wells.map(well => (
                 <StatusCard
@@ -70,7 +76,7 @@ const ProductionMonitor: React.FC = () => {
               }}>
                 <div>
                   <span style={{ color: '#00ffff', fontSize: 15, fontWeight: 600 }}>
-                    {selectedWell.name} 运行监测曲线
+                    {selectedWell.name} — 涡轮机电流监测
                   </span>
                   <span style={{ color: '#8c9eb5', fontSize: 13, marginLeft: 12 }}>
                     {selectedWell.zone}
@@ -83,42 +89,60 @@ const ProductionMonitor: React.FC = () => {
 
               {/* 电流图表 */}
               <div className="panel-card">
-                <div className="panel-title">电流监测 (A)</div>
+                <div className="panel-title">涡轮机电流曲线 (A)</div>
+                <div style={{ color: '#8c9eb5', fontSize: 12, marginBottom: 8 }}>
+                  红线 = 实测电流 | 蓝虚线 = 额定电流 ({CURRENT_THRESHOLDS.ratedCurrent} A)
+                </div>
                 {loading ? (
-                  <div style={{ height: 220, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#8c9eb5' }}>
+                  <div style={{ height: 280, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#8c9eb5' }}>
                     加载中...
                   </div>
                 ) : (
-                  <CurrentChart data={monitorData} height={220} />
+                  <CurrentChart data={monitorData} height={280} />
                 )}
               </div>
 
-              {/* 电压频率图表 */}
-              <div className="panel-card">
-                <div className="panel-title">电压(V) & 电机频率(Hz)</div>
-                {!loading && <VoltageFreqChart data={monitorData} height={220} />}
-              </div>
-
-              {/* 压力温度图表 */}
-              <div className="panel-card">
-                <div className="panel-title">吸入口压力(MPa) & 温度(°C)</div>
-                {!loading && <PressureTempChart data={monitorData} height={220} />}
-              </div>
-
-              {/* 井筒参数摘要 */}
-              {monitorData.length > 0 && (
+              {/* 涡轮机诊断结果 */}
+              {!loading && diagnosis && (
                 <div className="panel-card">
-                  <div className="panel-title">当前参数摘要</div>
+                  <div className="panel-title">涡轮机工作状态诊断</div>
+                  <div style={{
+                    background: diagnosis.status === 'fault' ? '#2a0a0a' : diagnosis.status === 'warning' ? '#2a1a00' : '#0a1f0a',
+                    border: `1px solid ${diagnosis.status === 'fault' ? '#ff4d4f' : diagnosis.status === 'warning' ? '#faad14' : '#52c41a'}`,
+                    borderRadius: 8,
+                    padding: '16px',
+                    marginBottom: 12,
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                      <span style={{ fontSize: 20 }}>
+                        {diagnosis.status === 'fault' ? '🔴' : diagnosis.status === 'warning' ? '🟡' : '🟢'}
+                      </span>
+                      <span style={{
+                        color: diagnosis.status === 'fault' ? '#ff4d4f' : diagnosis.status === 'warning' ? '#faad14' : '#52c41a',
+                        fontSize: 15,
+                        fontWeight: 600,
+                      }}>
+                        涡轮机状态：{diagnosis.status === 'fault' ? '异常（故障）' : diagnosis.status === 'warning' ? '运行不稳定（预警）' : '运行正常'}
+                      </span>
+                    </div>
+                    <div style={{ color: '#c8d8e8', fontSize: 13, lineHeight: 1.6 }}>
+                      {diagnosis.diagnosis}
+                    </div>
+                    {diagnosis.liquidHeight > 0 && (
+                      <div style={{ color: '#faad14', fontSize: 13, marginTop: 6 }}>
+                        ⚠ 电流特征显示估算积液高度约 {diagnosis.liquidHeight} m
+                      </div>
+                    )}
+                  </div>
                   <Row gutter={[12, 12]}>
                     {[
-                      { label: '电流', value: monitorData[monitorData.length - 1].current, unit: 'A', color: '#ff4d4f' },
-                      { label: '电压', value: monitorData[monitorData.length - 1].voltage, unit: 'V', color: '#00ffff' },
-                      { label: '电机频率', value: monitorData[monitorData.length - 1].frequency, unit: 'Hz', color: '#52c41a' },
-                      { label: '吸入口压力', value: monitorData[monitorData.length - 1].intakePressure, unit: 'MPa', color: '#faad14' },
-                      { label: '吸入口温度', value: monitorData[monitorData.length - 1].intakeTemp, unit: '°C', color: '#00ffff' },
-                      { label: '绕组温度', value: monitorData[monitorData.length - 1].motorTemp, unit: '°C', color: '#ff7a45' },
+                      { label: '最新电流', value: latest?.current.toFixed(2), unit: 'A', color: '#ff4d4f' },
+                      { label: '10点均值', value: avgCurrent, unit: 'A', color: '#1890ff' },
+                      { label: '额定电流', value: CURRENT_THRESHOLDS.ratedCurrent, unit: 'A', color: '#00ffff' },
+                      { label: '最大电流', value: monitorData.length > 0 ? Math.max(...monitorData.map(d => d.current)).toFixed(2) : '--', unit: 'A', color: '#52c41a' },
+                      { label: '最小电流', value: monitorData.length > 0 ? Math.min(...monitorData.map(d => d.current)).toFixed(2) : '--', unit: 'A', color: '#faad14' },
                     ].map(item => (
-                      <Col key={item.label} xs={12} sm={8} md={4}>
+                      <Col key={item.label} xs={12} sm={8} md={6} lg={5}>
                         <div style={{
                           background: '#001529',
                           border: '1px solid #1d3a5c',

@@ -4,10 +4,12 @@ import {
   FullscreenOutlined,
   FullscreenExitOutlined,
   UserOutlined,
-  BulbOutlined,
   AlertOutlined,
+  LogoutOutlined,
 } from '@ant-design/icons';
-import { Badge, Tooltip } from 'antd';
+import { Badge, Tooltip, Dropdown } from 'antd';
+import type { MenuProps } from 'antd';
+import { logout, getCurrentUser } from '../../utils/auth';
 
 const NAV_ITEMS = [
   { key: '/', label: '系统首页' },
@@ -22,6 +24,7 @@ const Header: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const user = getCurrentUser();
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -33,11 +36,29 @@ const Header: React.FC = () => {
     }
   };
 
-  const activeKey = NAV_ITEMS.find(item =>
-    item.key === '/'
-      ? location.pathname === '/'
-      : location.pathname.startsWith(item.key)
-  )?.key;
+  const path = location.pathname || '/';
+  const activeKey = React.useMemo(() => {
+    if (path === '/') return '/';
+    return NAV_ITEMS.find(item => item.key !== '/' && path.startsWith(item.key))?.key ?? '/';
+  }, [path]);
+
+  const userMenuItems: MenuProps['items'] = [
+    {
+      key: 'profile',
+      label: <span style={{ color: '#c8d8e8' }}>个人信息</span>,
+      icon: <UserOutlined style={{ color: '#1890ff' }} />,
+    },
+    { type: 'divider' },
+    {
+      key: 'logout',
+      label: <span style={{ color: '#ff4d4f' }}>退出登录</span>,
+      icon: <LogoutOutlined style={{ color: '#ff4d4f' }} />,
+      onClick: () => {
+        logout();
+        navigate('/login', { replace: true });
+      },
+    },
+  ];
 
   return (
     <header style={{
@@ -119,12 +140,6 @@ const Header: React.FC = () => {
 
       {/* 右侧工具栏 */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-        <Tooltip title="暗色/亮色模式">
-          <button style={iconBtnStyle}>
-            <BulbOutlined style={{ fontSize: 16, color: '#faad14' }} />
-          </button>
-        </Tooltip>
-
         <Tooltip title="告警通知">
           <button style={iconBtnStyle}>
             <Badge count={4} size="small">
@@ -142,29 +157,34 @@ const Header: React.FC = () => {
           </button>
         </Tooltip>
 
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-          cursor: 'pointer',
-          padding: '4px 10px',
-          borderRadius: 6,
-          border: '1px solid #1d3a5c',
-          background: '#002244',
-        }}>
+        <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" arrow>
           <div style={{
-            width: 28,
-            height: 28,
-            background: 'linear-gradient(135deg, #1890ff, #0050b3)',
-            borderRadius: '50%',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
+            gap: 8,
+            cursor: 'pointer',
+            padding: '4px 10px',
+            borderRadius: 6,
+            border: '1px solid #1d3a5c',
+            background: '#002244',
+            transition: 'border-color 0.2s',
           }}>
-            <UserOutlined style={{ fontSize: 14, color: 'white' }} />
+            <div style={{
+              width: 28,
+              height: 28,
+              background: 'linear-gradient(135deg, #1890ff, #0050b3)',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <UserOutlined style={{ fontSize: 14, color: 'white' }} />
+            </div>
+            <span style={{ color: '#c8d8e8', fontSize: 13 }}>
+              {user?.displayName || '管理员'}
+            </span>
           </div>
-          <span style={{ color: '#c8d8e8', fontSize: 13 }}>管理员</span>
-        </div>
+        </Dropdown>
       </div>
     </header>
   );

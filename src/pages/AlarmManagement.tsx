@@ -2,8 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Row, Col, Tag } from 'antd';
 import AlarmTable from '../components/DataTable/AlarmTable';
 import CurrentChart from '../components/Charts/CurrentChart';
-import VoltageFreqChart from '../components/Charts/VoltageFreqChart';
-import PressureTempChart from '../components/Charts/PressureTempChart';
 import type { AlarmRecord, MonitorDataPoint } from '../types';
 import { getAlarmRecords, getMonitorData } from '../services/api';
 import { FAULT_LEVEL_LABELS, FAULT_LEVEL_COLORS } from '../utils/constants';
@@ -19,15 +17,14 @@ const AlarmManagement: React.FC = () => {
   const [selectedRecord, setSelectedRecord] = useState<AlarmRecord | null>(null);
   const [monitorData, setMonitorData] = useState<MonitorDataPoint[]>([]);
 
-  const fetchData = async () => {
-    setLoading(true);
-    const result = await getAlarmRecords({ zone, wellName, pageNum, pageSize });
-    setRecords(result.list);
-    setTotal(result.total);
-    setLoading(false);
-  };
-
   useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      const result = await getAlarmRecords({ zone, wellName, pageNum, pageSize });
+      setRecords(result.list);
+      setTotal(result.total);
+      setLoading(false);
+    };
     fetchData();
   }, [pageNum, pageSize, zone, wellName]);
 
@@ -74,22 +71,10 @@ const AlarmManagement: React.FC = () => {
                 {selectedRecord.wellName} 故障诊断曲线
               </div>
 
-              {/* 电流图 */}
-              <div style={{ marginBottom: 8 }}>
-                <div style={{ color: '#8c9eb5', fontSize: 12, marginBottom: 4 }}>电流(A)</div>
-                <CurrentChart data={monitorData} height={180} />
-              </div>
-
-              {/* 电压频率图 */}
-              <div style={{ marginBottom: 8 }}>
-                <div style={{ color: '#8c9eb5', fontSize: 12, marginBottom: 4 }}>电压(V) & 电机频率(Hz)</div>
-                <VoltageFreqChart data={monitorData} height={160} />
-              </div>
-
-              {/* 压力温度图 */}
+              {/* 涡轮机电流图 */}
               <div style={{ marginBottom: 12 }}>
-                <div style={{ color: '#8c9eb5', fontSize: 12, marginBottom: 4 }}>吸入口压力(MPa) & 温度(°C)</div>
-                <PressureTempChart data={monitorData} height={160} />
+                <div style={{ color: '#8c9eb5', fontSize: 12, marginBottom: 4 }}>涡轮机电流 (A)</div>
+                <CurrentChart data={monitorData} height={220} />
               </div>
 
               {/* 故障信息 */}
