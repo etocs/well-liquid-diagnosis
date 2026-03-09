@@ -40,6 +40,7 @@ echo ""
 echo "启动后端服务器 (端口 5000)..."
 cd backend
 source .venv/bin/activate
+export FLASK_ENV=development
 python app.py &
 BACKEND_PID=$!
 cd ..

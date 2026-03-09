@@ -130,10 +130,13 @@ npm run dev
 
 ```bash
 cd backend
+export FLASK_ENV=development  # 开发模式
 python app.py
 ```
 
 后端服务将运行在 `http://localhost:5000`
+
+**注意**: 生产环境部署时，请勿设置 `FLASK_ENV=development`，并使用 Gunicorn 或 uWSGI 等生产级 WSGI 服务器。
 
 ### 构建生产版本
 
@@ -142,6 +145,19 @@ npm run build
 ```
 
 构建产物将生成在 `dist` 目录中。
+
+### 生产环境部署
+
+生产环境建议使用：
+- **Frontend**: Nginx 托管静态文件
+- **Backend**: Gunicorn/uWSGI + Nginx 反向代理
+
+示例 Gunicorn 启动命令：
+```bash
+cd backend
+gunicorn -w 4 -b 0.0.0.0:5000 app:app
+```
+
 
 ## API 接口文档
 

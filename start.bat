@@ -43,7 +43,7 @@ if not exist "backend\.venv" (
 echo.
 echo 启动后端服务器 (端口 5000^)...
 cd backend
-start "Backend Server" cmd /k ".venv\Scripts\activate && python app.py"
+start "Backend Server" cmd /k "set FLASK_ENV=development && .venv\Scripts\activate && python app.py"
 cd ..
 
 timeout /t 2 /nobreak >nul
