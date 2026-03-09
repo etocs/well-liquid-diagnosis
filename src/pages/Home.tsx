@@ -22,7 +22,9 @@ const Home: React.FC = () => {
       checkAlarms(w); // Check for alarms when wells are loaded
       setLoading(false);
     });
-  }, [checkAlarms]);
+    // checkAlarms is stable from useCallback, safe to include
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (loading) {
     return (

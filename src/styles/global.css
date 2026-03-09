@@ -266,3 +266,9 @@ body {
 :fullscreen .ant-layout {
   background: var(--primary-bg);
 }
+
+/* 闪烁动画 - 用于告警通知 */
+@keyframes flash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}

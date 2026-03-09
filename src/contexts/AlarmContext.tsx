@@ -18,15 +18,26 @@ export const AlarmProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [alarmCount, setAlarmCount] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const alarmIntervalRef = useRef<number | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
 
-  // Create audio element for alarm sound
+  // Create audio context once
   useEffect(() => {
-    // Create a simple alarm sound using Web Audio API
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
     
+    return () => {
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+        audioContextRef.current = null;
+      }
+    };
+  }, []);
+
+  // Handle alarm sound playback
+  useEffect(() => {
     const playAlarmSound = () => {
-      if (!hasActiveAlarm) return;
+      if (!hasActiveAlarm || !audioContextRef.current) return;
       
+      const audioContext = audioContextRef.current;
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
       
@@ -62,7 +73,12 @@ export const AlarmProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, [hasActiveAlarm]);
 
   const checkAlarms = useCallback((wells: Well[]) => {
-    const alarmedWells = wells.filter(well => well.liquidHeight > ALARM_THRESHOLD);
+    // Filter wells with valid liquid height above threshold
+    const alarmedWells = wells.filter(well => 
+      typeof well.liquidHeight === 'number' && 
+      !isNaN(well.liquidHeight) && 
+      well.liquidHeight > ALARM_THRESHOLD
+    );
     const count = alarmedWells.length;
     
     setAlarmCount(count);
