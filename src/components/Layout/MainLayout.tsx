@@ -1,6 +1,7 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Header from './Header';
+import SimulationControl from '../Simulation/SimulationControl';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useZoom } from '../../contexts/ZoomContext';
 
@@ -25,6 +26,7 @@ const MainLayout: React.FC = () => {
       }}>
         <Outlet />
       </main>
+      <SimulationControl />
     </div>
   );
 };

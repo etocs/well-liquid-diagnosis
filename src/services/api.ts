@@ -1,7 +1,15 @@
 import type { Well, AlarmRecord, MonitorDataPoint, WellResistanceData, Statistics, QueryParams } from '../types';
-import { wells, alarmRecords, monitorDataMap, resistanceDataMap } from '../mock/data';
+import { wells as staticWells, alarmRecords, monitorDataMap, resistanceDataMap } from '../mock/data';
 import { PROCESS_RESULT } from '../utils/constants';
 import { formatDateTime } from '../utils/date';
+import { getSimulationService } from './simulation';
+
+// Get wells from simulation service
+function getWellsData(): Well[] {
+  const simulationService = getSimulationService();
+  const simWells = simulationService.getWells();
+  return simWells.length > 0 ? simWells : staticWells;
+}
 
 // 模拟网络延迟
 function delay(ms = 300): Promise<void> {
@@ -11,12 +19,12 @@ function delay(ms = 300): Promise<void> {
 // ============ 井筒接口 ============
 export async function getWells(): Promise<Well[]> {
   await delay();
-  return [...wells];
+  return getWellsData();
 }
 
 export async function getWellById(id: string): Promise<Well | undefined> {
   await delay(100);
-  return wells.find(w => w.id === id);
+  return getWellsData().find(w => w.id === id);
 }
 
 // ============ 预警记录接口 ============
@@ -77,6 +85,7 @@ export async function getAllResistanceData(): Promise<WellResistanceData[]> {
 // ============ 统计数据接口 ============
 export async function getStatistics(): Promise<Statistics> {
   await delay(100);
+  const wells = getWellsData();
   const totalWells = wells.length;
   const normalWells = wells.filter(w => w.status === 'normal').length;
   const warningWells = wells.filter(w => w.status === 'warning').length;

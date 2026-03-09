@@ -7,6 +7,7 @@ import type { Well, Statistics } from '../types';
 import { getWells, getStatistics } from '../services/api';
 import { useAlarm } from '../contexts/AlarmContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useSimulation } from '../contexts/SimulationContext';
 
 const Home: React.FC = () => {
   const [wells, setWells] = useState<Well[]>([]);
@@ -14,17 +15,33 @@ const Home: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const { checkAlarms } = useAlarm();
   const { themeMode } = useTheme();
+  const { isSimulationRunning } = useSimulation();
 
+  // Load initial data
   useEffect(() => {
     Promise.all([getWells(), getStatistics()]).then(([w, s]) => {
       setWells(w);
       setStats(s);
-      checkAlarms(w); // Check for alarms when wells are loaded
+      checkAlarms(w);
       setLoading(false);
     });
-    // checkAlarms is stable from useCallback, safe to include
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [checkAlarms]);
+
+  // Refresh data periodically when simulation is running
+  useEffect(() => {
+    if (!isSimulationRunning) return;
+
+    const refreshInterval = window.setInterval(async () => {
+      const [w, s] = await Promise.all([getWells(), getStatistics()]);
+      setWells(w);
+      setStats(s);
+      checkAlarms(w);
+    }, 3000); // Refresh every 3 seconds
+
+    return () => {
+      clearInterval(refreshInterval);
+    };
+  }, [isSimulationRunning, checkAlarms]);
 
   if (loading) {
     return (

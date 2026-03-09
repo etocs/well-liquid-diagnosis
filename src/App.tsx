@@ -17,6 +17,7 @@ import { isAuthenticated } from './utils/auth';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { ZoomProvider } from './contexts/ZoomContext';
 import { AlarmProvider } from './contexts/AlarmContext';
+import { SimulationProvider } from './contexts/SimulationContext';
 
 const getDarkTheme = () => ({
   algorithm: theme.darkAlgorithm,
@@ -163,9 +164,11 @@ const App: React.FC = () => {
   return (
     <ThemeProvider>
       <ZoomProvider>
-        <AlarmProvider>
-          <AppContent />
-        </AlarmProvider>
+        <SimulationProvider>
+          <AlarmProvider>
+            <AppContent />
+          </AlarmProvider>
+        </SimulationProvider>
       </ZoomProvider>
     </ThemeProvider>
   );
