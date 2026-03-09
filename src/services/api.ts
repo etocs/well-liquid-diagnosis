@@ -1,5 +1,7 @@
 import type { Well, AlarmRecord, MonitorDataPoint, WellResistanceData, Statistics, QueryParams } from '../types';
 import { wells, alarmRecords, monitorDataMap, resistanceDataMap } from '../mock/data';
+import { PROCESS_RESULT } from '../utils/constants';
+import { formatDateTime } from '../utils/date';
 
 // 模拟网络延迟
 function delay(ms = 300): Promise<void> {
@@ -50,8 +52,8 @@ export async function processAlarm(alarmId: string): Promise<AlarmRecord> {
     throw new Error('Alarm not found');
   }
   // 更新处理状态
-  alarm.processResult = 'processed';
-  alarm.processTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
+  alarm.processResult = PROCESS_RESULT.PROCESSED;
+  alarm.processTime = formatDateTime();
   return { ...alarm };
 }
 

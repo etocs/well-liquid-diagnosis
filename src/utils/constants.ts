@@ -38,6 +38,12 @@ export const PROCESS_RESULT_LABELS: Record<string, string> = {
   unprocessed: '未处理',
 };
 
+// 处理结果常量
+export const PROCESS_RESULT = {
+  PROCESSED: 'processed' as const,
+  UNPROCESSED: 'unprocessed' as const,
+};
+
 // 电流诊断阈值
 export const CURRENT_THRESHOLDS = {
   normalMin: 15,       // 正常最低电流 A

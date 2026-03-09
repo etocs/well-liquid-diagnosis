@@ -4,8 +4,9 @@ import AlarmTable from '../components/DataTable/AlarmTable';
 import CurrentChart from '../components/Charts/CurrentChart';
 import type { AlarmRecord, MonitorDataPoint } from '../types';
 import { getAlarmRecords, getMonitorData, processAlarm } from '../services/api';
-import { FAULT_LEVEL_LABELS, FAULT_LEVEL_COLORS } from '../utils/constants';
+import { FAULT_LEVEL_LABELS, FAULT_LEVEL_COLORS, PROCESS_RESULT } from '../utils/constants';
 import { useAlarmSound } from '../hooks/useAlarmSound';
+import { formatDateTime } from '../utils/date';
 
 const AlarmManagement: React.FC = () => {
   const [records, setRecords] = useState<AlarmRecord[]>([]);
@@ -19,7 +20,7 @@ const AlarmManagement: React.FC = () => {
   const [monitorData, setMonitorData] = useState<MonitorDataPoint[]>([]);
   
   // Check if there are any unprocessed alarms to trigger alarm sound
-  const hasUnprocessedAlarms = records.some(r => r.processResult === 'unprocessed');
+  const hasUnprocessedAlarms = records.some(r => r.processResult === PROCESS_RESULT.UNPROCESSED);
   useAlarmSound(hasUnprocessedAlarms);
 
   useEffect(() => {
@@ -58,7 +59,11 @@ const AlarmManagement: React.FC = () => {
       
       // If the processed record was selected, update it
       if (selectedRecord?.id === record.id) {
-        setSelectedRecord({ ...record, processResult: 'processed', processTime: new Date().toISOString().slice(0, 19).replace('T', ' ') });
+        setSelectedRecord({ 
+          ...record, 
+          processResult: PROCESS_RESULT.PROCESSED, 
+          processTime: formatDateTime()
+        });
       }
     } catch (error) {
       message.error('处理预警失败，请重试');

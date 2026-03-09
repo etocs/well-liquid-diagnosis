@@ -21,7 +21,9 @@ export const useAlarmSound = (shouldPlay: boolean, soundUrl: string = '/alarm.mp
   // Generate an urgent alarm sound using Web Audio API
   const playGeneratedAlarm = () => {
     if (!audioContextRef.current) {
-      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      // Type-safe way to handle webkit prefix
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext as typeof AudioContext;
+      audioContextRef.current = new AudioContextClass();
     }
 
     const ctx = audioContextRef.current;
@@ -157,7 +159,7 @@ export const useAlarmSound = (shouldPlay: boolean, soundUrl: string = '/alarm.mp
       }
       stopGeneratedAlarm();
     };
-  }, [shouldPlay, useGeneratedSound]);
+  }, [shouldPlay, useGeneratedSound, soundUrl]);
 
   return { isPlaying };
 };

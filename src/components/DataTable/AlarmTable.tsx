@@ -6,6 +6,7 @@ import {
   FAULT_LEVEL_LABELS,
   FAULT_LEVEL_COLORS,
   PROCESS_RESULT_LABELS,
+  PROCESS_RESULT,
   ZONES,
 } from '../../utils/constants';
 
@@ -91,7 +92,7 @@ const AlarmTable: React.FC<Props> = ({
       key: 'processResult',
       width: 90,
       render: (result: string) => (
-        <Tag color={result === 'processed' ? '#52c41a' : '#ff4d4f'}>
+        <Tag color={result === PROCESS_RESULT.PROCESSED ? '#52c41a' : '#ff4d4f'}>
           {PROCESS_RESULT_LABELS[result]}
         </Tag>
       ),
@@ -102,7 +103,7 @@ const AlarmTable: React.FC<Props> = ({
       width: 130,
       render: (_: unknown, record: AlarmRecord) => (
         <Space>
-          {record.processResult === 'unprocessed' && (
+          {record.processResult === PROCESS_RESULT.UNPROCESSED && (
             <Button
               size="small"
               type="primary"
