@@ -1,0 +1,193 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body, html {
+  width: 100%;
+  height: 100%;
+  font-family: 'Microsoft YaHei', Arial, sans-serif;
+  background: #0a1929;
+  color: #ffffff;
+  overflow: hidden;
+}
+
+:root {
+  --primary-bg: #0a1929;
+  --secondary-bg: #112240;
+  --card-bg: #1a2942;
+  --border-color: #1e3a5f;
+  --primary-blue: #1890ff;
+  --success-green: #52c41a;
+  --warning-orange: #faad14;
+  --error-red: #f5222d;
+  --text-primary: #ffffff;
+  --text-secondary: #8c9cb8;
+}
+
+/* Element Plus overrides for dark theme */
+.el-table {
+  background-color: transparent !important;
+  color: var(--text-primary);
+}
+
+.el-table th {
+  background-color: var(--secondary-bg) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+.el-table td {
+  background-color: transparent !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary);
+}
+
+.el-table tr {
+  background-color: var(--card-bg) !important;
+}
+
+.el-table--striped .el-table__body tr.el-table__row--striped td {
+  background-color: rgba(26, 41, 66, 0.5) !important;
+}
+
+.el-table__body tr:hover > td {
+  background-color: rgba(24, 144, 255, 0.1) !important;
+}
+
+.el-button--primary {
+  background-color: var(--primary-blue);
+  border-color: var(--primary-blue);
+}
+
+.el-button--success {
+  background-color: var(--success-green);
+  border-color: var(--success-green);
+}
+
+.el-button--warning {
+  background-color: var(--warning-orange);
+  border-color: var(--warning-orange);
+}
+
+.el-button--danger {
+  background-color: var(--error-red);
+  border-color: var(--error-red);
+}
+
+.el-input__wrapper {
+  background-color: var(--secondary-bg) !important;
+  border-color: var(--border-color) !important;
+  box-shadow: none !important;
+}
+
+.el-input__inner {
+  color: var(--text-primary) !important;
+}
+
+.el-select {
+  --el-select-input-focus-border-color: var(--primary-blue);
+}
+
+.el-select__popper {
+  background-color: var(--secondary-bg) !important;
+  border-color: var(--border-color) !important;
+}
+
+.el-select-dropdown__item {
+  color: var(--text-primary);
+}
+
+.el-select-dropdown__item:hover {
+  background-color: rgba(24, 144, 255, 0.1);
+}
+
+.el-pagination {
+  color: var(--text-primary);
+}
+
+.el-pagination button:disabled {
+  background-color: transparent;
+  color: var(--text-secondary);
+}
+
+.el-pager li {
+  background-color: transparent;
+  color: var(--text-primary);
+}
+
+.el-pager li.is-active {
+  color: var(--primary-blue);
+}
+
+.el-date-editor {
+  --el-date-editor-daterange-width: 300px;
+}
+
+.el-picker__popper {
+  background-color: var(--secondary-bg) !important;
+  border-color: var(--border-color) !important;
+}
+
+.el-date-table td.current:not(.disabled) span {
+  background-color: var(--primary-blue);
+}
+
+/* Card styles */
+.data-card {
+  background: linear-gradient(135deg, var(--secondary-bg) 0%, var(--card-bg) 100%);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Chart container */
+.chart-container {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 15px;
+  margin-top: 10px;
+}
+
+/* Status badges */
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-badge.pending {
+  background-color: rgba(250, 173, 20, 0.2);
+  color: var(--warning-orange);
+  border: 1px solid var(--warning-orange);
+}
+
+.status-badge.processed {
+  background-color: rgba(82, 196, 26, 0.2);
+  color: var(--success-green);
+  border: 1px solid var(--success-green);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--secondary-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-blue);
+}
