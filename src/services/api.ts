@@ -71,6 +71,19 @@ export async function getMonitorData(wellId: string): Promise<MonitorDataPoint[]
   return monitorDataMap[wellId] || [];
 }
 
+// ============ 涡轮机电流数据接口 ============
+export async function getTurbineCurrentData(wellId: string): Promise<MonitorDataPoint[]> {
+  await delay(100);
+  const simulationService = getSimulationService();
+  return simulationService.getTurbineCurrentHistory(wellId);
+}
+
+export async function getAllTurbineCurrentData(): Promise<Map<string, MonitorDataPoint[]>> {
+  await delay(100);
+  const simulationService = getSimulationService();
+  return simulationService.getAllTurbineCurrentHistories();
+}
+
 // ============ 水敏电阻数据接口 ============
 export async function getResistanceData(wellId: string): Promise<WellResistanceData | undefined> {
   await delay(200);

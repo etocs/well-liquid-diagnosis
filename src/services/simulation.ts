@@ -1,6 +1,7 @@
-import type { Well, WellSegment, AlarmRecord } from '../types';
+import type { Well, WellSegment, AlarmRecord, MonitorDataPoint } from '../types';
 import { wells as initialWells, alarmRecords } from '../mock/data';
 import { formatDateTime } from '../utils/date';
+import dayjs from 'dayjs';
 
 export class SimulationService {
   private wells: Well[];
@@ -8,9 +9,33 @@ export class SimulationService {
   private intervalId: number | null = null;
   private updateCallbacks: Array<(wells: Well[]) => void> = [];
   private alarmCallbacks: Array<(alarms: AlarmRecord[]) => void> = [];
+  private turbineCurrentHistory: Map<string, MonitorDataPoint[]> = new Map();
+  private readonly MAX_HISTORY_POINTS = 60; // Keep last 60 data points
 
   constructor() {
     this.wells = JSON.parse(JSON.stringify(initialWells)); // Deep clone
+    this.initializeTurbineHistory();
+  }
+
+  /**
+   * Initialize turbine current history for all wells
+   */
+  private initializeTurbineHistory() {
+    this.wells.forEach(well => {
+      const history: MonitorDataPoint[] = [];
+      const now = dayjs();
+      
+      // Create initial historical data
+      for (let i = this.MAX_HISTORY_POINTS - 1; i >= 0; i--) {
+        history.push({
+          time: now.subtract(i * 3, 'second').format('HH:mm:ss'),
+          current: well.turbineCurrent + (Math.random() - 0.5) * 0.5,
+          predictCurrent: 19, // Rated current
+        });
+      }
+      
+      this.turbineCurrentHistory.set(well.id, history);
+    });
   }
 
   /**
@@ -42,6 +67,7 @@ export class SimulationService {
   reset() {
     this.stop();
     this.wells = JSON.parse(JSON.stringify(initialWells));
+    this.initializeTurbineHistory();
     this.notifyWellUpdates();
   }
 
@@ -69,12 +95,42 @@ export class SimulationService {
   }
 
   /**
+   * Get turbine current history for a specific well
+   */
+  getTurbineCurrentHistory(wellId: string): MonitorDataPoint[] {
+    return this.turbineCurrentHistory.get(wellId) || [];
+  }
+
+  /**
+   * Get all turbine current histories
+   */
+  getAllTurbineCurrentHistories(): Map<string, MonitorDataPoint[]> {
+    return this.turbineCurrentHistory;
+  }
+
+  /**
    * Main simulation update logic
    */
   private updateSimulation() {
+    const currentTime = dayjs().format('HH:mm:ss');
+    
     this.wells.forEach(well => {
       // Update turbine current with some randomness
       this.updateTurbineCurrent(well);
+
+      // Add new turbine current data point to history
+      const history = this.turbineCurrentHistory.get(well.id) || [];
+      history.push({
+        time: currentTime,
+        current: well.turbineCurrent,
+        predictCurrent: 19, // Rated current
+      });
+      
+      // Keep only last MAX_HISTORY_POINTS data points
+      if (history.length > this.MAX_HISTORY_POINTS) {
+        history.shift();
+      }
+      this.turbineCurrentHistory.set(well.id, history);
 
       // Update each segment
       well.segments.forEach(segment => {

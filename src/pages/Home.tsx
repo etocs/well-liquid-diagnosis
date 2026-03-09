@@ -3,6 +3,7 @@ import { Row, Col, Spin } from 'antd';
 import StatisticsPanel from '../components/Dashboard/StatisticsPanel';
 import StatusCard from '../components/Dashboard/StatusCard';
 import WellboreDiagram from '../components/WellDiagram/WellboreDiagram';
+import TurbineCurrentGrid from '../components/Dashboard/TurbineCurrentGrid';
 import type { Well, Statistics } from '../types';
 import { getWells, getStatistics } from '../services/api';
 import { useAlarm } from '../contexts/AlarmContext';
@@ -125,6 +126,12 @@ const Home: React.FC = () => {
             </Col>
           ))}
         </Row>
+      </div>
+
+      {/* 涡轮机电流实时监控 */}
+      <div className="panel-card">
+        <div className="panel-title">涡轮机电流实时监控</div>
+        <TurbineCurrentGrid wells={wells} />
       </div>
 
       {/* 运行说明 */}
