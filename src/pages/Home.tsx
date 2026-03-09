@@ -5,19 +5,24 @@ import StatusCard from '../components/Dashboard/StatusCard';
 import WellboreDiagram from '../components/WellDiagram/WellboreDiagram';
 import type { Well, Statistics } from '../types';
 import { getWells, getStatistics } from '../services/api';
+import { useAlarm } from '../contexts/AlarmContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 const Home: React.FC = () => {
   const [wells, setWells] = useState<Well[]>([]);
   const [stats, setStats] = useState<Statistics | null>(null);
   const [loading, setLoading] = useState(true);
+  const { checkAlarms } = useAlarm();
+  const { themeMode } = useTheme();
 
   useEffect(() => {
     Promise.all([getWells(), getStatistics()]).then(([w, s]) => {
       setWells(w);
       setStats(s);
+      checkAlarms(w); // Check for alarms when wells are loaded
       setLoading(false);
     });
-  }, []);
+  }, [checkAlarms]);
 
   if (loading) {
     return (
@@ -31,8 +36,10 @@ const Home: React.FC = () => {
     <div className="page-container">
       {/* 页面标题 */}
       <div style={{
-        background: 'linear-gradient(135deg, #002244, #003366)',
-        border: '1px solid #1d3a5c',
+        background: themeMode === 'dark' 
+          ? 'linear-gradient(135deg, #002244, #003366)'
+          : 'linear-gradient(135deg, #e6f7ff, #bae7ff)',
+        border: themeMode === 'dark' ? '1px solid #1d3a5c' : '1px solid #91d5ff',
         borderRadius: 8,
         padding: '20px 24px',
         marginBottom: 20,
@@ -48,10 +55,19 @@ const Home: React.FC = () => {
           borderRadius: '50%',
           background: 'rgba(24,144,255,0.1)',
         }} />
-        <h1 style={{ color: '#00ffff', fontSize: 24, fontWeight: 700, marginBottom: 8 }}>
+        <h1 style={{ 
+          color: themeMode === 'dark' ? '#00ffff' : '#1890ff', 
+          fontSize: 24, 
+          fontWeight: 700, 
+          marginBottom: 8 
+        }}>
           💧 井下积液工况诊断系统
         </h1>
-        <p style={{ color: '#8c9eb5', fontSize: 14, margin: 0 }}>
+        <p style={{ 
+          color: themeMode === 'dark' ? '#8c9eb5' : '#666666', 
+          fontSize: 14, 
+          margin: 0 
+        }}>
           基于井管电流监测与水敏电阻网的智能积液诊断系统 | 实时监控 · 智能诊断 · 预警管理
         </p>
       </div>
