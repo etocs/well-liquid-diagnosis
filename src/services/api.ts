@@ -42,6 +42,19 @@ export async function getAlarmRecords(params: QueryParams): Promise<{ list: Alar
   return { list: paged, total };
 }
 
+// 处理预警记录
+export async function processAlarm(alarmId: string): Promise<AlarmRecord> {
+  await delay(500);
+  const alarm = alarmRecords.find(a => a.id === alarmId);
+  if (!alarm) {
+    throw new Error('Alarm not found');
+  }
+  // 更新处理状态
+  alarm.processResult = 'processed';
+  alarm.processTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
+  return { ...alarm };
+}
+
 // ============ 监测数据接口 ============
 export async function getMonitorData(wellId: string): Promise<MonitorDataPoint[]> {
   await delay(200);

@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Row, Col, Tag } from 'antd';
+import { Row, Col, Tag, message } from 'antd';
 import AlarmTable from '../components/DataTable/AlarmTable';
 import CurrentChart from '../components/Charts/CurrentChart';
 import type { AlarmRecord, MonitorDataPoint } from '../types';
-import { getAlarmRecords, getMonitorData } from '../services/api';
+import { getAlarmRecords, getMonitorData, processAlarm } from '../services/api';
 import { FAULT_LEVEL_LABELS, FAULT_LEVEL_COLORS } from '../utils/constants';
+import { useAlarmSound } from '../hooks/useAlarmSound';
 
 const AlarmManagement: React.FC = () => {
   const [records, setRecords] = useState<AlarmRecord[]>([]);
@@ -16,6 +17,10 @@ const AlarmManagement: React.FC = () => {
   const [wellName, setWellName] = useState('');
   const [selectedRecord, setSelectedRecord] = useState<AlarmRecord | null>(null);
   const [monitorData, setMonitorData] = useState<MonitorDataPoint[]>([]);
+  
+  // Check if there are any unprocessed alarms to trigger alarm sound
+  const hasUnprocessedAlarms = records.some(r => r.processResult === 'unprocessed');
+  useAlarmSound(hasUnprocessedAlarms);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -40,6 +45,29 @@ const AlarmManagement: React.FC = () => {
     setMonitorData(data);
   };
 
+  const handleProcess = async (record: AlarmRecord) => {
+    try {
+      setLoading(true);
+      await processAlarm(record.id);
+      message.success(`已处理预警: ${record.wellName} - ${record.faultType}`);
+      
+      // Refresh the alarm list to reflect the updated status
+      const result = await getAlarmRecords({ zone, wellName, pageNum, pageSize });
+      setRecords(result.list);
+      setTotal(result.total);
+      
+      // If the processed record was selected, update it
+      if (selectedRecord?.id === record.id) {
+        setSelectedRecord({ ...record, processResult: 'processed', processTime: new Date().toISOString().slice(0, 19).replace('T', ' ') });
+      }
+    } catch (error) {
+      message.error('处理预警失败，请重试');
+      console.error('Failed to process alarm:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="page-container">
       <Row gutter={16}>
@@ -56,9 +84,7 @@ const AlarmManagement: React.FC = () => {
               onPageChange={(page, size) => { setPageNum(page); setPageSize(size); }}
               onFilter={handleFilter}
               onDetail={handleDetail}
-              onProcess={record => {
-                alert(`处理预警: ${record.wellName} - ${record.faultType}`);
-              }}
+              onProcess={handleProcess}
             />
           </div>
         </Col>
