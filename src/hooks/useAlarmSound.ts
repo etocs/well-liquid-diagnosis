@@ -17,6 +17,7 @@ export const useAlarmSound = (shouldPlay: boolean, soundUrl: string = '/alarm.mp
   const oscillatorRef = useRef<OscillatorNode | null>(null);
   const timeoutRef = useRef<number | null>(null);
   const intervalRef = useRef<number | null>(null);
+  const hasInitializedAudio = useRef(false);
 
   // Generate an urgent alarm sound using Web Audio API
   const playGeneratedAlarm = () => {
@@ -49,7 +50,7 @@ export const useAlarmSound = (shouldPlay: boolean, soundUrl: string = '/alarm.mp
     oscillator.type = 'sine';
     oscillator.frequency.value = 800; // Start frequency
     
-    // Volume control (0.0 to 1.0) - set to 0.7 for louder sound
+    // Volume control (0.0 to 1.0) - set to 0.7 for loud and urgent sound
     gainNode.gain.value = 0.7;
     
     oscillator.start();
@@ -112,13 +113,13 @@ export const useAlarmSound = (shouldPlay: boolean, soundUrl: string = '/alarm.mp
     }
   };
 
+  // Initialize audio element once
   useEffect(() => {
-    // Try to load the custom audio file first
-    if (!audioRef.current && !useGeneratedSound) {
+    if (!hasInitializedAudio.current && !useGeneratedSound) {
       const audio = new Audio();
       audio.src = soundUrl;
       audio.loop = true;
-      audio.volume = 0.8; // Set volume to 80% for louder sound
+      audio.volume = 0.8; // Set volume to 80% for loud sound
       
       // Check if the audio file exists
       audio.addEventListener('error', () => {
@@ -127,9 +128,12 @@ export const useAlarmSound = (shouldPlay: boolean, soundUrl: string = '/alarm.mp
       });
       
       audioRef.current = audio;
+      hasInitializedAudio.current = true;
     }
+  }, [soundUrl, useGeneratedSound]);
 
-    // Play or stop the alarm based on shouldPlay
+  // Control alarm playback based on shouldPlay
+  useEffect(() => {
     if (shouldPlay && !isPlaying) {
       if (useGeneratedSound) {
         playGeneratedAlarm();
@@ -137,7 +141,6 @@ export const useAlarmSound = (shouldPlay: boolean, soundUrl: string = '/alarm.mp
         audioRef.current.play().catch((error) => {
           console.warn('Failed to play custom alarm sound, using generated alarm sound:', error);
           setUseGeneratedSound(true);
-          playGeneratedAlarm();
         });
       }
       setIsPlaying(true);
@@ -150,8 +153,10 @@ export const useAlarmSound = (shouldPlay: boolean, soundUrl: string = '/alarm.mp
       }
       setIsPlaying(false);
     }
+  }, [shouldPlay, isPlaying, useGeneratedSound]);
 
-    // Cleanup on unmount
+  // Cleanup on unmount
+  useEffect(() => {
     return () => {
       if (audioRef.current) {
         audioRef.current.pause();
@@ -159,7 +164,7 @@ export const useAlarmSound = (shouldPlay: boolean, soundUrl: string = '/alarm.mp
       }
       stopGeneratedAlarm();
     };
-  }, [shouldPlay, useGeneratedSound, soundUrl]);
+  }, []);
 
   return { isPlaying };
 };
