@@ -104,11 +104,11 @@ const LiquidDiagnosis: React.FC = () => {
                     fontSize: 32,
                     fontWeight: 700,
                   }}>
-                    {diagnosis.liquidHeight}
-                    <span style={{ fontSize: 14, color: '#8c9eb5', marginLeft: 4 }}>m</span>
+                    {diagnosis.liquidHeight.toFixed(1)}
+                    <span style={{ fontSize: 14, color: '#8c9eb5', marginLeft: 4 }}>mm</span>
                   </div>
                   <Progress
-                    percent={Math.round((diagnosis.liquidHeight / 2000) * 100)}
+                    percent={Math.round((diagnosis.liquidHeight / 60) * 100)}
                     strokeColor={diagnosis.liquidHeight > 0 ? '#ff4d4f' : '#52c41a'}
                     trailColor="#1d3a5c"
                     showInfo={false}

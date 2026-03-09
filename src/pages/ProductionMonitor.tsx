@@ -130,7 +130,7 @@ const ProductionMonitor: React.FC = () => {
                     </div>
                     {diagnosis.liquidHeight > 0 && (
                       <div style={{ color: '#faad14', fontSize: 13, marginTop: 6 }}>
-                        ⚠ 电流特征显示估算积液高度约 {diagnosis.liquidHeight} m
+                        ⚠ 电流特征显示估算积液高度约 {diagnosis.liquidHeight.toFixed(1)} mm
                       </div>
                     )}
                   </div>

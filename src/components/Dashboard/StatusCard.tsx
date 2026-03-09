@@ -65,7 +65,7 @@ const StatusCard: React.FC<Props> = ({ well, onClick, selected }) => {
             fontSize: 18,
             fontWeight: 700,
           }}>
-            {well.liquidHeight}<span style={{ fontSize: 11, marginLeft: 2 }}>m</span>
+            {well.liquidHeight.toFixed(1)}<span style={{ fontSize: 11, marginLeft: 2 }}>mm</span>
           </div>
         </div>
         <div style={{

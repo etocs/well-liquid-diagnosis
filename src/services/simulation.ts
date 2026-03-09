@@ -95,33 +95,34 @@ export class SimulationService {
   }
 
   /**
-   * Update turbine current value
+   * Update turbine current value with increased variation
    */
   private updateTurbineCurrent(well: Well) {
     const baseValue = well.turbineCurrent;
     
-    // Add random fluctuation
-    const fluctuation = (Math.random() - 0.5) * 0.5;
+    // Add random fluctuation with more variation
+    const fluctuation = (Math.random() - 0.5) * 1.5; // Increased from 0.5 to 1.5
     let newValue = baseValue + fluctuation;
 
-    // If turbine is stopped, keep it low
+    // If turbine is stopped, keep it low with more variation
     if (well.turbineStatus === 'stopped') {
       newValue = Math.max(5, Math.min(newValue, 10));
+      newValue += (Math.random() - 0.5) * 1.0; // Add more variation
     } 
-    // If turbine is unstable, add more fluctuation
+    // If turbine is unstable, add much more fluctuation
     else if (well.turbineStatus === 'unstable') {
-      newValue += (Math.random() - 0.5) * 2;
-      newValue = Math.max(15, Math.min(newValue, 20));
+      newValue += (Math.random() - 0.5) * 3; // Increased from 2 to 3
+      newValue = Math.max(14, Math.min(newValue, 20));
     }
-    // Normal operation
+    // Normal operation with some variation
     else {
       newValue = Math.max(17, Math.min(newValue, 20));
     }
 
     well.turbineCurrent = Math.round(newValue * 10) / 10;
 
-    // Randomly change turbine status (with low probability)
-    if (Math.random() < 0.02) { // 2% chance every update
+    // Randomly change turbine status (with higher probability for better demonstration)
+    if (Math.random() < 0.05) { // Increased from 2% to 5% chance
       const statuses: Array<'normal' | 'unstable' | 'stopped'> = ['normal', 'unstable', 'stopped'];
       const newStatus = statuses[Math.floor(Math.random() * statuses.length)];
       if (newStatus !== well.turbineStatus) {
@@ -132,25 +133,27 @@ export class SimulationService {
   }
 
   /**
-   * Update a well segment
+   * Update a well segment with increased variation
+   * Note: Liquid height is now in millimeters (max 60mm)
    */
   private updateSegment(segment: WellSegment, well: Well) {
-    // Update segment current with random fluctuation
-    const fluctuation = (Math.random() - 0.5) * 0.3;
+    // Update segment current with larger random fluctuation
+    const fluctuation = (Math.random() - 0.5) * 1.0; // Increased from 0.3 to 1.0
     segment.currentValue = Math.max(8, Math.min(20, segment.currentValue + fluctuation));
     segment.currentValue = Math.round(segment.currentValue * 10) / 10;
 
-    // Randomly change liquid height (with low probability)
-    if (Math.random() < 0.05) { // 5% chance
-      const change = (Math.random() - 0.4) * 50; // Bias towards decrease
-      segment.liquidHeight = Math.max(0, segment.liquidHeight + change);
-      segment.liquidHeight = Math.round(segment.liquidHeight);
+    // Randomly change liquid height (with higher probability and larger changes)
+    if (Math.random() < 0.15) { // Increased from 5% to 15%
+      // Change can be -5 to +3 mm (bias towards decrease)
+      const change = (Math.random() - 0.6) * 8; // Larger changes
+      segment.liquidHeight = Math.max(0, Math.min(60, segment.liquidHeight + change)); // Max 60mm
+      segment.liquidHeight = Math.round(segment.liquidHeight * 10) / 10; // Keep one decimal
     }
 
-    // Update segment status based on liquid height and current
-    if (segment.liquidHeight > 400 || segment.currentValue < 10) {
+    // Update segment status based on liquid height (in mm) and current
+    if (segment.liquidHeight > 40 || segment.currentValue < 10) { // >40mm is severe
       segment.status = 'fault';
-    } else if (segment.liquidHeight > 100 || segment.currentValue < 16) {
+    } else if (segment.liquidHeight > 20 || segment.currentValue < 16) { // >20mm is warning
       segment.status = 'warning';
     } else {
       segment.status = 'normal';
@@ -175,15 +178,16 @@ export class SimulationService {
 
   /**
    * Check for new alarms and generate them
+   * Note: Thresholds updated for millimeter units (max 60mm)
    */
   private checkForAlarms(well: Well) {
-    // Check segments for liquid level alarms
+    // Check segments for liquid level alarms (in mm)
     well.segments.forEach(segment => {
-      if (segment.liquidHeight > 400 && Math.random() < 0.1) {
+      if (segment.liquidHeight > 40 && Math.random() < 0.15) { // >40mm = severe
         this.generateLiquidAlarm(well, segment, 'level1');
-      } else if (segment.liquidHeight > 200 && Math.random() < 0.05) {
+      } else if (segment.liquidHeight > 25 && Math.random() < 0.10) { // >25mm = moderate
         this.generateLiquidAlarm(well, segment, 'level2');
-      } else if (segment.liquidHeight > 50 && Math.random() < 0.02) {
+      } else if (segment.liquidHeight > 10 && Math.random() < 0.05) { // >10mm = minor
         this.generateLiquidAlarm(well, segment, 'level3');
       }
     });
@@ -206,7 +210,7 @@ export class SimulationService {
       segmentId: segment.id,
       faultTime: formatDateTime(),
       processResult: 'unprocessed',
-      faultReason: `${segment.segmentName}检测到${severityNames[level]}积液，积液高度约${Math.round(segment.liquidHeight)}m，电流值${segment.currentValue}A`,
+      faultReason: `${segment.segmentName}检测到${severityNames[level]}积液，积液高度约${segment.liquidHeight.toFixed(1)}mm，电流值${segment.currentValue}A`,
       faultRange: formatDateTime(),
     };
 

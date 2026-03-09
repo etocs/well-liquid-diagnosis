@@ -17,7 +17,7 @@ export interface WellSegment {
   depth: number;            // 深度 m
   currentValue: number;     // 当前电流值 A
   status: WellStatus;       // 井段状态
-  liquidHeight: number;     // 该井段积液高度 m
+  liquidHeight: number;     // 该井段积液高度 mm (最大60mm)
 }
 
 // 井筒信息
@@ -26,7 +26,7 @@ export interface Well {
   name: string;
   zone: string;
   status: WellStatus;
-  liquidHeight: number; // 总积液高度 m
+  liquidHeight: number; // 总积液高度 mm (最大60mm)
   turbineStatus: TurbineStatus; // 涡轮机状态
   turbineCurrent: number; // 涡轮机电流 A
   segments: WellSegment[]; // 井段列表
@@ -67,7 +67,7 @@ export interface ResistanceSensor {
 export interface WellResistanceData {
   wellId: string;
   sensors: ResistanceSensor[];
-  liquidHeight: number; // 判定积液高度 m
+  liquidHeight: number; // 判定积液高度 mm (最大60mm)
   updateTime: string;
 }
 
@@ -77,7 +77,7 @@ export interface DiagnosisResult {
   status: WellStatus;
   currentDiagnosis: string;
   resistanceDiagnosis: string;
-  liquidHeight: number;
+  liquidHeight: number; // mm (最大60mm)
   confidence: number; // 置信度 0-100
 }
 

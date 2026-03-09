@@ -39,6 +39,7 @@ function generateAnomalyData(base: number, count: number, noise: number): number
 }
 
 // ============ 井筒数据 ============
+// 注意：井管直径60mm，积液高度单位为mm，最大值60mm
 export const wells: Well[] = [
   {
     id: 'W001',
@@ -59,12 +60,12 @@ export const wells: Well[] = [
     name: 'A区-2号井管',
     zone: 'A区',
     status: 'warning',
-    liquidHeight: 320,
+    liquidHeight: 25, // mm
     turbineStatus: 'unstable',
     turbineCurrent: 17.2,
     segments: [
-      { id: 'W002-S1', segmentName: '井段1', depth: 500, currentValue: 17.5, status: 'warning', liquidHeight: 120 },
-      { id: 'W002-S2', segmentName: '井段2', depth: 1000, currentValue: 17.0, status: 'warning', liquidHeight: 200 },
+      { id: 'W002-S1', segmentName: '井段1', depth: 500, currentValue: 17.5, status: 'warning', liquidHeight: 15 },
+      { id: 'W002-S2', segmentName: '井段2', depth: 1000, currentValue: 17.0, status: 'warning', liquidHeight: 10 },
       { id: 'W002-S3', segmentName: '井段3', depth: 1500, currentValue: 17.1, status: 'normal', liquidHeight: 0 },
     ],
   },
@@ -73,12 +74,12 @@ export const wells: Well[] = [
     name: 'A区-3号井管',
     zone: 'A区',
     status: 'fault',
-    liquidHeight: 850,
+    liquidHeight: 55, // mm
     turbineStatus: 'stopped',
     turbineCurrent: 8.5,
     segments: [
-      { id: 'W003-S1', segmentName: '井段1', depth: 500, currentValue: 9.2, status: 'fault', liquidHeight: 350 },
-      { id: 'W003-S2', segmentName: '井段2', depth: 1000, currentValue: 8.5, status: 'fault', liquidHeight: 500 },
+      { id: 'W003-S1', segmentName: '井段1', depth: 500, currentValue: 9.2, status: 'fault', liquidHeight: 30 },
+      { id: 'W003-S2', segmentName: '井段2', depth: 1000, currentValue: 8.5, status: 'fault', liquidHeight: 25 },
       { id: 'W003-S3', segmentName: '井段3', depth: 1500, currentValue: 8.0, status: 'normal', liquidHeight: 0 },
     ],
   },
@@ -100,11 +101,11 @@ export const wells: Well[] = [
     name: 'B区-2号井管',
     zone: 'B区',
     status: 'warning',
-    liquidHeight: 150,
+    liquidHeight: 18, // mm
     turbineStatus: 'normal',
     turbineCurrent: 18.0,
     segments: [
-      { id: 'W005-S1', segmentName: '井段1', depth: 500, currentValue: 17.8, status: 'warning', liquidHeight: 150 },
+      { id: 'W005-S1', segmentName: '井段1', depth: 500, currentValue: 17.8, status: 'warning', liquidHeight: 18 },
       { id: 'W005-S2', segmentName: '井段2', depth: 1000, currentValue: 18.2, status: 'normal', liquidHeight: 0 },
     ],
   },
@@ -127,13 +128,13 @@ export const wells: Well[] = [
     name: 'C区-2号井管',
     zone: 'C区',
     status: 'fault',
-    liquidHeight: 1200,
+    liquidHeight: 52, // mm
     turbineStatus: 'unstable',
     turbineCurrent: 10.5,
     segments: [
-      { id: 'W007-S1', segmentName: '井段1', depth: 600, currentValue: 11.0, status: 'fault', liquidHeight: 400 },
-      { id: 'W007-S2', segmentName: '井段2', depth: 1200, currentValue: 10.5, status: 'fault', liquidHeight: 600 },
-      { id: 'W007-S3', segmentName: '井段3', depth: 1800, currentValue: 10.0, status: 'fault', liquidHeight: 200 },
+      { id: 'W007-S1', segmentName: '井段1', depth: 600, currentValue: 11.0, status: 'fault', liquidHeight: 22 },
+      { id: 'W007-S2', segmentName: '井段2', depth: 1200, currentValue: 10.5, status: 'fault', liquidHeight: 20 },
+      { id: 'W007-S3', segmentName: '井段3', depth: 1800, currentValue: 10.0, status: 'fault', liquidHeight: 10 },
     ],
   },
 ];

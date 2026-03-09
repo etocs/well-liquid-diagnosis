@@ -77,7 +77,7 @@ const LiquidLevelChart: React.FC<Props> = ({ sensors, liquidHeight, height = 400
         left: 'right',
         top: 10,
         style: {
-          text: `积液高度: ${liquidHeight}m`,
+          text: `积液高度: ${liquidHeight.toFixed(1)}mm`,
           fontSize: 14,
           fill: liquidHeight > 0 ? '#ff4d4f' : '#52c41a',
           fontWeight: 'bold',
