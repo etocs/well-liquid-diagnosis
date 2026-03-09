@@ -1,0 +1,268 @@
+@import './variables.css';
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--primary-bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--card-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+/* Ant Design 深色主题覆盖 */
+.ant-layout {
+  background: var(--primary-bg) !important;
+}
+
+.ant-layout-content {
+  background: var(--primary-bg) !important;
+}
+
+.ant-table-wrapper .ant-table {
+  background: var(--card-bg) !important;
+  color: var(--text) !important;
+}
+
+.ant-table-wrapper .ant-table-thead > tr > th {
+  background: var(--table-header-bg) !important;
+  color: var(--cyan) !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+
+.ant-table-wrapper .ant-table-tbody > tr > td {
+  background: var(--card-bg) !important;
+  color: var(--text) !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+
+.ant-table-wrapper .ant-table-tbody > tr:hover > td {
+  background: var(--table-row-hover) !important;
+}
+
+.ant-table-wrapper .ant-table-tbody > tr.ant-table-row-selected > td {
+  background: var(--table-row-hover) !important;
+}
+
+.ant-pagination {
+  color: var(--text) !important;
+}
+
+.ant-pagination .ant-pagination-item {
+  background: var(--card-bg) !important;
+  border-color: var(--border) !important;
+}
+
+.ant-pagination .ant-pagination-item a {
+  color: var(--text) !important;
+}
+
+.ant-pagination .ant-pagination-item-active {
+  background: var(--primary) !important;
+  border-color: var(--primary) !important;
+}
+
+.ant-pagination .ant-pagination-item-active a {
+  color: white !important;
+}
+
+.ant-pagination .ant-pagination-prev button,
+.ant-pagination .ant-pagination-next button {
+  color: var(--text) !important;
+  background: var(--card-bg) !important;
+  border-color: var(--border) !important;
+}
+
+.ant-select .ant-select-selector {
+  background: var(--card-bg) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+.ant-select-dropdown {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--border) !important;
+}
+
+.ant-select-item {
+  color: var(--text) !important;
+}
+
+.ant-select-item-option-active {
+  background: var(--table-row-hover) !important;
+}
+
+.ant-select-item-option-selected {
+  background: var(--primary) !important;
+}
+
+.ant-input {
+  background: var(--card-bg) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+.ant-input::placeholder {
+  color: var(--text-secondary) !important;
+}
+
+.ant-input:focus, .ant-input-focused {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2) !important;
+}
+
+.ant-btn {
+  border-radius: 4px !important;
+}
+
+.ant-card {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text) !important;
+}
+
+.ant-card .ant-card-head {
+  background: var(--table-header-bg) !important;
+  border-bottom: 1px solid var(--border) !important;
+  color: var(--cyan) !important;
+}
+
+.ant-card .ant-card-head-title {
+  color: var(--cyan) !important;
+}
+
+.ant-statistic .ant-statistic-title {
+  color: var(--text-secondary) !important;
+}
+
+.ant-statistic .ant-statistic-content {
+  color: var(--text) !important;
+}
+
+.ant-tag {
+  border-radius: 3px !important;
+}
+
+.ant-divider {
+  border-color: var(--border) !important;
+}
+
+/* 日期选择器 */
+.ant-picker {
+  background: var(--card-bg) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+.ant-picker-input > input {
+  color: var(--text) !important;
+}
+
+.ant-picker-suffix {
+  color: var(--text-secondary) !important;
+}
+
+/* 面包屑 */
+.ant-breadcrumb {
+  color: var(--text-secondary) !important;
+}
+
+/* 通用卡片样式 */
+.panel-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.panel-title {
+  color: var(--cyan);
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.panel-title::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 16px;
+  background: var(--primary);
+  border-radius: 2px;
+}
+
+/* 状态徽标 */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* 页面容器 */
+.page-container {
+  padding: 16px;
+  min-height: calc(100vh - var(--header-height));
+}
+
+/* 筛选区域 */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .filter-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* 全屏模式 */
+:fullscreen .ant-layout {
+  background: var(--primary-bg);
+}

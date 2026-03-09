@@ -1,0 +1,15 @@
+:root {
+  --primary-bg: #001529;
+  --card-bg: #002244;
+  --table-header-bg: #003366;
+  --table-row-hover: #004488;
+  --primary: #1890ff;
+  --success: #52c41a;
+  --warning: #faad14;
+  --error: #ff4d4f;
+  --text: #ffffff;
+  --text-secondary: #8c9eb5;
+  --cyan: #00ffff;
+  --border: #1d3a5c;
+  --header-height: 56px;
+}
