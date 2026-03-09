@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Row, Col, Tag } from 'antd';
+import { Row, Col, Tag, message } from 'antd';
 import AlarmTable from '../components/DataTable/AlarmTable';
 import CurrentChart from '../components/Charts/CurrentChart';
 import type { AlarmRecord, MonitorDataPoint } from '../types';
-import { getAlarmRecords, getMonitorData } from '../services/api';
-import { FAULT_LEVEL_LABELS, FAULT_LEVEL_COLORS } from '../utils/constants';
+import { getAlarmRecords, getMonitorData, processAlarm } from '../services/api';
+import { FAULT_LEVEL_LABELS, FAULT_LEVEL_COLORS, PROCESS_RESULT } from '../utils/constants';
+import { useAlarmSound } from '../hooks/useAlarmSound';
+import { formatDateTime } from '../utils/date';
+import { useAlarm } from '../contexts/AlarmContext';
 
 const AlarmManagement: React.FC = () => {
   const [records, setRecords] = useState<AlarmRecord[]>([]);
@@ -16,6 +19,11 @@ const AlarmManagement: React.FC = () => {
   const [wellName, setWellName] = useState('');
   const [selectedRecord, setSelectedRecord] = useState<AlarmRecord | null>(null);
   const [monitorData, setMonitorData] = useState<MonitorDataPoint[]>([]);
+  const { refreshAlarmCount } = useAlarm();
+  
+  // Check if there are any unprocessed alarms to trigger alarm sound
+  const hasUnprocessedAlarms = records.some(r => r.processResult === PROCESS_RESULT.UNPROCESSED);
+  useAlarmSound(hasUnprocessedAlarms);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -40,6 +48,36 @@ const AlarmManagement: React.FC = () => {
     setMonitorData(data);
   };
 
+  const handleProcess = async (record: AlarmRecord) => {
+    try {
+      setLoading(true);
+      await processAlarm(record.id);
+      message.success(`已处理预警: ${record.wellName} - ${record.faultType}`);
+      
+      // Refresh the alarm list to reflect the updated status
+      const result = await getAlarmRecords({ zone, wellName, pageNum, pageSize });
+      setRecords(result.list);
+      setTotal(result.total);
+      
+      // Refresh alarm count in context
+      refreshAlarmCount();
+      
+      // If the processed record was selected, update it
+      if (selectedRecord?.id === record.id) {
+        setSelectedRecord({ 
+          ...record, 
+          processResult: PROCESS_RESULT.PROCESSED, 
+          processTime: formatDateTime()
+        });
+      }
+    } catch (error) {
+      message.error('处理预警失败，请重试');
+      console.error('Failed to process alarm:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="page-container">
       <Row gutter={16}>
@@ -56,9 +94,7 @@ const AlarmManagement: React.FC = () => {
               onPageChange={(page, size) => { setPageNum(page); setPageSize(size); }}
               onFilter={handleFilter}
               onDetail={handleDetail}
-              onProcess={record => {
-                alert(`处理预警: ${record.wellName} - ${record.faultType}`);
-              }}
+              onProcess={handleProcess}
             />
           </div>
         </Col>
@@ -92,10 +128,19 @@ const AlarmManagement: React.FC = () => {
                     </div>
                   </Col>
                   <Col span={12}>
-                    <div style={{ color: '#8c9eb5', fontSize: 11 }}>故障等级</div>
-                    <Tag color={FAULT_LEVEL_COLORS[selectedRecord.faultLevel]} style={{ fontSize: 12 }}>
-                      {FAULT_LEVEL_LABELS[selectedRecord.faultLevel]}
-                    </Tag>
+                    <div style={{ color: '#8c9eb5', fontSize: 11 }}>故障详情</div>
+                    {selectedRecord.faultLevel ? (
+                      <Tag color={FAULT_LEVEL_COLORS[selectedRecord.faultLevel]} style={{ fontSize: 12 }}>
+                        {FAULT_LEVEL_LABELS[selectedRecord.faultLevel]}
+                      </Tag>
+                    ) : selectedRecord.turbineStatus ? (
+                      <Tag 
+                        color={selectedRecord.turbineStatus === 'normal' ? '#52c41a' : selectedRecord.turbineStatus === 'unstable' ? '#faad14' : '#ff4d4f'} 
+                        style={{ fontSize: 12 }}
+                      >
+                        {selectedRecord.turbineStatus === 'normal' ? '正常' : selectedRecord.turbineStatus === 'unstable' ? '不稳定' : '停止'}
+                      </Tag>
+                    ) : '-'}
                   </Col>
                   <Col span={24}>
                     <div style={{ color: '#8c9eb5', fontSize: 11 }}>故障区间</div>

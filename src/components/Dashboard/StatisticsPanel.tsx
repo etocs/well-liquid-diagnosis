@@ -57,7 +57,7 @@ const StatisticsPanel: React.FC<Props> = ({ stats }) => {
         <StatItem label="故障井数" value={stats.faultWells} unit="口" color="#ff4d4f" icon="🚨" />
       </Col>
       <Col span={6}>
-        <StatItem label="平均积液高度" value={stats.avgLiquidHeight} unit="m" color="#00ffff" icon="💧" />
+        <StatItem label="平均积液高度" value={stats.avgLiquidHeight.toFixed(1)} unit="mm" color="#00ffff" icon="💧" />
       </Col>
       <Col span={6}>
         <StatItem label="预警总数" value={stats.totalAlarms} unit="条" color="#1890ff" icon="📋" />

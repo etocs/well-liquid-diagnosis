@@ -1,5 +1,15 @@
 import type { Well, AlarmRecord, MonitorDataPoint, WellResistanceData, Statistics, QueryParams } from '../types';
-import { wells, alarmRecords, monitorDataMap, resistanceDataMap } from '../mock/data';
+import { wells as staticWells, alarmRecords, monitorDataMap, resistanceDataMap } from '../mock/data';
+import { PROCESS_RESULT } from '../utils/constants';
+import { formatDateTime } from '../utils/date';
+import { getSimulationService } from './simulation';
+
+// Get wells from simulation service
+function getWellsData(): Well[] {
+  const simulationService = getSimulationService();
+  const simWells = simulationService.getWells();
+  return simWells.length > 0 ? simWells : staticWells;
+}
 
 // 模拟网络延迟
 function delay(ms = 300): Promise<void> {
@@ -9,12 +19,12 @@ function delay(ms = 300): Promise<void> {
 // ============ 井筒接口 ============
 export async function getWells(): Promise<Well[]> {
   await delay();
-  return [...wells];
+  return getWellsData();
 }
 
 export async function getWellById(id: string): Promise<Well | undefined> {
   await delay(100);
-  return wells.find(w => w.id === id);
+  return getWellsData().find(w => w.id === id);
 }
 
 // ============ 预警记录接口 ============
@@ -42,10 +52,36 @@ export async function getAlarmRecords(params: QueryParams): Promise<{ list: Alar
   return { list: paged, total };
 }
 
+// 处理预警记录
+export async function processAlarm(alarmId: string): Promise<AlarmRecord> {
+  await delay(500);
+  const alarm = alarmRecords.find(a => a.id === alarmId);
+  if (!alarm) {
+    throw new Error('Alarm not found');
+  }
+  // 更新处理状态
+  alarm.processResult = PROCESS_RESULT.PROCESSED;
+  alarm.processTime = formatDateTime();
+  return { ...alarm };
+}
+
 // ============ 监测数据接口 ============
 export async function getMonitorData(wellId: string): Promise<MonitorDataPoint[]> {
   await delay(200);
   return monitorDataMap[wellId] || [];
+}
+
+// ============ 涡轮机电流数据接口 ============
+export async function getTurbineCurrentData(wellId: string): Promise<MonitorDataPoint[]> {
+  await delay(100);
+  const simulationService = getSimulationService();
+  return simulationService.getTurbineCurrentHistory(wellId);
+}
+
+export async function getAllTurbineCurrentData(): Promise<Map<string, MonitorDataPoint[]>> {
+  await delay(100);
+  const simulationService = getSimulationService();
+  return simulationService.getAllTurbineCurrentHistories();
 }
 
 // ============ 水敏电阻数据接口 ============
@@ -62,6 +98,7 @@ export async function getAllResistanceData(): Promise<WellResistanceData[]> {
 // ============ 统计数据接口 ============
 export async function getStatistics(): Promise<Statistics> {
   await delay(100);
+  const wells = getWellsData();
   const totalWells = wells.length;
   const normalWells = wells.filter(w => w.status === 'normal').length;
   const warningWells = wells.filter(w => w.status === 'warning').length;

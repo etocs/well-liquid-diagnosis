@@ -8,9 +8,9 @@ interface Props {
 }
 
 /**
- * 井筒示意图 - 显示积液高度
+ * 井筒示意图 - 显示积液高度（单位：mm，最大60mm）
  */
-const WellboreDiagram: React.FC<Props> = ({ well, maxDepth = 2000 }) => {
+const WellboreDiagram: React.FC<Props> = ({ well, maxDepth = 60 }) => {
   const liquidPct = Math.min((well.liquidHeight / maxDepth) * 100, 100);
   const statusColor = STATUS_COLORS[well.status];
 
@@ -28,15 +28,15 @@ const WellboreDiagram: React.FC<Props> = ({ well, maxDepth = 2000 }) => {
 
       {/* 井筒图示 */}
       <div style={{ display: 'flex', alignItems: 'stretch', gap: 4 }}>
-        {/* 深度标尺 */}
+        {/* 深度标尺 - now in mm (from top to bottom: 60mm to 0mm) */}
         <div style={{
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
           paddingBottom: 4,
         }}>
-          {[0, 500, 1000, 1500, 2000].map(d => (
-            <span key={d} style={{ color: '#8c9eb5', fontSize: 10, textAlign: 'right' }}>{d}m</span>
+          {[60, 45, 30, 15, 0].map(d => (
+            <span key={d} style={{ color: '#8c9eb5', fontSize: 10, textAlign: 'right' }}>{d}mm</span>
           ))}
         </div>
 
@@ -97,7 +97,7 @@ const WellboreDiagram: React.FC<Props> = ({ well, maxDepth = 2000 }) => {
         </div>
         <div style={{ color: '#8c9eb5', fontSize: 11 }}>
           积液高度: <span style={{ color: well.liquidHeight > 0 ? '#ff4d4f' : '#52c41a' }}>
-            {well.liquidHeight}m
+            {well.liquidHeight.toFixed(1)}mm
           </span>
         </div>
       </div>

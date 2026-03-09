@@ -1,11 +1,24 @@
 // 井筒状态
 export type WellStatus = 'normal' | 'warning' | 'fault';
 
-// 故障等级
+// 故障等级 (积液程度)
 export type FaultLevel = 'level1' | 'level2' | 'level3';
+
+// 涡轮机状态
+export type TurbineStatus = 'normal' | 'unstable' | 'stopped';
 
 // 处理结果
 export type ProcessResult = 'processed' | 'unprocessed';
+
+// 井段信息
+export interface WellSegment {
+  id: string;
+  segmentName: string;      // 井段名称，如 "井段1", "井段2"
+  depth: number;            // 深度 m
+  currentValue: number;     // 当前电流值 A
+  status: WellStatus;       // 井段状态
+  liquidHeight: number;     // 该井段积液高度 mm (最大60mm)
+}
 
 // 井筒信息
 export interface Well {
@@ -13,7 +26,10 @@ export interface Well {
   name: string;
   zone: string;
   status: WellStatus;
-  liquidHeight: number; // 积液高度 m
+  liquidHeight: number; // 总积液高度 mm (最大60mm)
+  turbineStatus: TurbineStatus; // 涡轮机状态
+  turbineCurrent: number; // 涡轮机电流 A
+  segments: WellSegment[]; // 井段列表
 }
 
 // 故障预警记录
@@ -22,8 +38,10 @@ export interface AlarmRecord {
   wellId: string;
   wellName: string;
   zone: string;
-  faultType: string;
-  faultLevel: FaultLevel;
+  faultType: string; // 故障类型：积液一级/二级/三级 或 涡轮机正常/不稳定/停止
+  faultLevel?: FaultLevel; // 积液故障的等级
+  turbineStatus?: TurbineStatus; // 涡轮机状态故障
+  segmentId?: string; // 关联的井段ID（如果是井段故障）
   faultTime: string;
   faultReason: string;
   processResult: ProcessResult;
@@ -49,7 +67,7 @@ export interface ResistanceSensor {
 export interface WellResistanceData {
   wellId: string;
   sensors: ResistanceSensor[];
-  liquidHeight: number; // 判定积液高度 m
+  liquidHeight: number; // 判定积液高度 mm (最大60mm)
   updateTime: string;
 }
 
@@ -59,7 +77,7 @@ export interface DiagnosisResult {
   status: WellStatus;
   currentDiagnosis: string;
   resistanceDiagnosis: string;
-  liquidHeight: number;
+  liquidHeight: number; // mm (最大60mm)
   confidence: number; // 置信度 0-100
 }
 

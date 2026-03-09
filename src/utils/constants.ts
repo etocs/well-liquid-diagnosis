@@ -1,14 +1,28 @@
 // 区域列表
 export const ZONES = ['A区', 'B区', 'C区'];
 
-// 故障类型
-export const FAULT_TYPES = ['含气', '高温', '过载', '欠载', '绝缘降低', '积液'];
+// 故障类型 - 积液等级和涡轮机状态
+export const FAULT_TYPES = {
+  LIQUID_LEVEL_1: '积液一级',
+  LIQUID_LEVEL_2: '积液二级', 
+  LIQUID_LEVEL_3: '积液三级',
+  TURBINE_NORMAL: '涡轮机正常',
+  TURBINE_UNSTABLE: '涡轮机不稳定',
+  TURBINE_STOPPED: '涡轮机停止',
+};
 
-// 故障等级标签
+// 故障等级标签 - 对应积液程度
 export const FAULT_LEVEL_LABELS: Record<string, string> = {
   level1: '一级（严重）',
   level2: '二级（一般）',
   level3: '三级（轻微）',
+};
+
+// 涡轮机状态标签
+export const TURBINE_STATUS_LABELS: Record<string, string> = {
+  normal: '正常',
+  unstable: '不稳定',
+  stopped: '停止',
 };
 
 // 故障等级颜色
@@ -36,6 +50,12 @@ export const STATUS_COLORS: Record<string, string> = {
 export const PROCESS_RESULT_LABELS: Record<string, string> = {
   processed: '已处理',
   unprocessed: '未处理',
+};
+
+// 处理结果常量
+export const PROCESS_RESULT = {
+  PROCESSED: 'processed' as const,
+  UNPROCESSED: 'unprocessed' as const,
 };
 
 // 电流诊断阈值

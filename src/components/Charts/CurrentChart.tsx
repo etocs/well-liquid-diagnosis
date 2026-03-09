@@ -8,20 +8,22 @@ interface Props {
 }
 
 const CurrentChart: React.FC<Props> = ({ data, height = 220 }) => {
+  // Use actual HH:mm:ss time from data
   const times = data.map(d => d.time);
   const currents = data.map(d => d.current);
   const predictCurrents = data.map(d => d.predictCurrent);
 
   const option = {
     backgroundColor: 'transparent',
-    grid: { top: 30, right: 20, bottom: 30, left: 50 },
+    grid: { top: 50, right: 20, bottom: 80, left: 50 },
     tooltip: {
       trigger: 'axis',
       backgroundColor: '#002244',
       borderColor: '#1d3a5c',
       textStyle: { color: '#fff' },
       formatter: (params: any[]) => {
-        let str = `<div style="padding:4px 8px"><strong>${params[0]?.axisValue}</strong>`;
+        const time = params[0]?.axisValue;
+        let str = `<div style="padding:4px 8px"><strong>${time}</strong>`;
         params.forEach((p: any) => {
           str += `<br/><span style="color:${p.color}">● ${p.seriesName}: ${p.value} A</span>`;
         });
@@ -34,11 +36,32 @@ const CurrentChart: React.FC<Props> = ({ data, height = 220 }) => {
       top: 4,
       right: 10,
     },
+    toolbox: {
+      feature: {
+        dataZoom: {
+          yAxisIndex: 'none',
+          title: { zoom: '区域缩放', back: '还原缩放' },
+        },
+        restore: { title: '还原' },
+        saveAsImage: { title: '保存为图片' },
+      },
+      right: 10,
+      top: 25,
+      iconStyle: {
+        borderColor: '#8c9eb5',
+      },
+    },
     xAxis: {
       type: 'category',
+      name: '时间',
       data: times,
+      nameTextStyle: { color: '#8c9eb5', fontSize: 11 },
       axisLine: { lineStyle: { color: '#1d3a5c' } },
-      axisLabel: { color: '#8c9eb5', fontSize: 11, interval: Math.floor(times.length / 6) },
+      axisLabel: { 
+        color: '#8c9eb5', 
+        fontSize: 11,
+        interval: Math.floor(times.length / 6), // Show ~6 labels
+      },
       splitLine: { show: false },
     },
     yAxis: {
@@ -82,7 +105,31 @@ const CurrentChart: React.FC<Props> = ({ data, height = 220 }) => {
       },
     ],
     dataZoom: [
-      { type: 'inside', start: 0, end: 100 },
+      { 
+        type: 'inside', 
+        start: 0, 
+        end: 100,
+        xAxisIndex: 0,
+        zoomOnMouseWheel: true,
+        moveOnMouseMove: true,
+      },
+      {
+        type: 'slider',
+        show: true,
+        xAxisIndex: 0,
+        start: 0,
+        end: 100,
+        height: 20,
+        bottom: 10,
+        borderColor: '#1d3a5c',
+        fillerColor: 'rgba(24,144,255,0.2)',
+        handleStyle: {
+          color: '#1890ff',
+        },
+        textStyle: {
+          color: '#8c9eb5',
+        },
+      },
     ],
   };
 

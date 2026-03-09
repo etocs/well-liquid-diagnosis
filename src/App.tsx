@@ -14,8 +14,12 @@ import PlaceholderPage from './pages/PlaceholderPage';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import { isAuthenticated } from './utils/auth';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
+import { ZoomProvider } from './contexts/ZoomContext';
+import { AlarmProvider } from './contexts/AlarmContext';
+import { SimulationProvider } from './contexts/SimulationContext';
 
-const antdTheme = {
+const getDarkTheme = () => ({
   algorithm: theme.darkAlgorithm,
   token: {
     colorPrimary: '#1890ff',
@@ -62,14 +66,66 @@ const antdTheme = {
       colorPrimary: '#1890ff',
     },
   },
-};
+});
+
+const getLightTheme = () => ({
+  algorithm: theme.defaultAlgorithm,
+  token: {
+    colorPrimary: '#1890ff',
+    colorBgBase: '#f0f2f5',
+    colorBgContainer: '#ffffff',
+    colorBgElevated: '#ffffff',
+    colorBorder: '#d9d9d9',
+    colorText: '#000000',
+    colorTextSecondary: '#666666',
+    borderRadius: 6,
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif",
+  },
+  components: {
+    Table: {
+      headerBg: '#fafafa',
+      headerColor: '#000000',
+      rowHoverBg: '#f5f5f5',
+      colorBgContainer: '#ffffff',
+    },
+    Select: {
+      colorBgContainer: '#ffffff',
+      colorBgElevated: '#ffffff',
+    },
+    Input: {
+      colorBgContainer: '#ffffff',
+    },
+    DatePicker: {
+      colorBgContainer: '#ffffff',
+      colorBgElevated: '#ffffff',
+    },
+    Pagination: {
+      itemBg: '#ffffff',
+      itemActiveBg: '#1890ff',
+    },
+    Card: {
+      colorBgContainer: '#ffffff',
+      headerBg: '#fafafa',
+    },
+    Modal: {
+      contentBg: '#ffffff',
+      headerBg: '#fafafa',
+    },
+    Spin: {
+      colorPrimary: '#1890ff',
+    },
+  },
+});
 
 // Route guard: redirect to /login if not authenticated
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return isAuthenticated() ? <>{children}</> : <Navigate to="/login" replace />;
 };
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
+  const { themeMode } = useTheme();
+  const antdTheme = themeMode === 'dark' ? getDarkTheme() : getLightTheme();
+
   return (
     <ConfigProvider locale={zhCN} theme={antdTheme}>
       <BrowserRouter>
@@ -101,6 +157,20 @@ const App: React.FC = () => {
         </Routes>
       </BrowserRouter>
     </ConfigProvider>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <ThemeProvider>
+      <ZoomProvider>
+        <SimulationProvider>
+          <AlarmProvider>
+            <AppContent />
+          </AlarmProvider>
+        </SimulationProvider>
+      </ZoomProvider>
+    </ThemeProvider>
   );
 };
 
