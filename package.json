@@ -1,0 +1,35 @@
+{
+  "name": "well-liquid-diagnosis",
+  "version": "1.0.0",
+  "description": "井下积液工况诊断系统 - 基于电流监测与水敏电阻网的积液诊断平台",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/etocs/well-liquid-diagnosis.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/etocs/well-liquid-diagnosis/issues"
+  },
+  "homepage": "https://github.com/etocs/well-liquid-diagnosis#readme",
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.4",
+    "vite": "^7.3.1"
+  },
+  "dependencies": {
+    "@element-plus/icons-vue": "^2.3.2",
+    "axios": "^1.13.6",
+    "echarts": "^6.0.0",
+    "element-plus": "^2.13.5",
+    "vue": "^3.5.29",
+    "vue-router": "^5.0.3"
+  }
+}
