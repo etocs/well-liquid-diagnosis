@@ -207,12 +207,13 @@ export class SimulationService {
     }
 
     // Update segment status based on liquid height (in mm) and current
-    if (segment.liquidHeight > 40 || segment.currentValue < 10) { // >40mm is severe
+    // New thresholds: >=20mm = level1 (fault), 5-20mm = level2 (warning), <5mm = level3 (warning)
+    if (segment.liquidHeight >= 20 || segment.currentValue < 10) { // >=20mm is level1 (fault)
       segment.status = 'fault';
-    } else if (segment.liquidHeight > 20 || segment.currentValue < 16) { // >20mm is warning
+    } else if (segment.liquidHeight > 0 || segment.currentValue < 16) { // Any liquid > 0mm is at least warning
       segment.status = 'warning';
     } else {
-      segment.status = 'normal';
+      segment.status = 'normal'; // No liquid
     }
   }
 
@@ -234,16 +235,17 @@ export class SimulationService {
 
   /**
    * Check for new alarms and generate them
-   * Note: Thresholds updated for millimeter units (max 60mm)
+   * Note: Thresholds updated - >=20mm = level1, 5-20mm = level2, <5mm = level3
    */
   private checkForAlarms(well: Well) {
     // Check segments for liquid level alarms (in mm)
+    // New thresholds: >=20mm = level1 (severe), 5-20mm = level2 (moderate), <5mm = level3 (minor)
     well.segments.forEach(segment => {
-      if (segment.liquidHeight > 40 && Math.random() < 0.15) { // >40mm = severe
+      if (segment.liquidHeight >= 20 && Math.random() < 0.15) { // >=20mm = level1 (severe)
         this.generateLiquidAlarm(well, segment, 'level1');
-      } else if (segment.liquidHeight > 25 && Math.random() < 0.10) { // >25mm = moderate
+      } else if (segment.liquidHeight >= 5 && segment.liquidHeight < 20 && Math.random() < 0.10) { // 5-20mm = level2 (moderate)
         this.generateLiquidAlarm(well, segment, 'level2');
-      } else if (segment.liquidHeight > 10 && Math.random() < 0.05) { // >10mm = minor
+      } else if (segment.liquidHeight > 0 && segment.liquidHeight < 5 && Math.random() < 0.05) { // <5mm = level3 (minor)
         this.generateLiquidAlarm(well, segment, 'level3');
       }
     });
