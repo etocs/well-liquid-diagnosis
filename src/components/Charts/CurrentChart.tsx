@@ -8,8 +8,8 @@ interface Props {
 }
 
 const CurrentChart: React.FC<Props> = ({ data, height = 220 }) => {
-  // Convert time to seconds (assuming 3 second intervals)
-  const timeInSeconds = data.map((_, index) => index * 3);
+  // Use actual system time from data (HH:mm:ss format)
+  const times = data.map(d => d.time);
   const currents = data.map(d => d.current);
   const normalCurrents = data.map(d => d.normalCurrent);
 
@@ -22,8 +22,8 @@ const CurrentChart: React.FC<Props> = ({ data, height = 220 }) => {
       borderColor: '#1d3a5c',
       textStyle: { color: '#fff' },
       formatter: (params: any[]) => {
-        const timeSeconds = params[0]?.axisValue;
-        let str = `<div style="padding:4px 8px"><strong>${timeSeconds}s</strong>`;
+        const time = params[0]?.axisValue;
+        let str = `<div style="padding:4px 8px"><strong>${time}</strong>`;
         params.forEach((p: any) => {
           str += `<br/><span style="color:${p.color}">● ${p.seriesName}: ${p.value} A</span>`;
         });
@@ -52,19 +52,17 @@ const CurrentChart: React.FC<Props> = ({ data, height = 220 }) => {
       },
     },
     xAxis: {
-      type: 'value',
-      name: '时间(秒)',
-      data: timeInSeconds,
+      type: 'category',
+      name: '时间',
+      data: times,
       nameTextStyle: { color: '#8c9eb5', fontSize: 11 },
       axisLine: { lineStyle: { color: '#1d3a5c' } },
       axisLabel: { 
         color: '#8c9eb5', 
         fontSize: 11,
-        formatter: '{value}s',
+        interval: Math.floor(times.length / 6), // Show ~6 labels
       },
       splitLine: { show: false },
-      min: 0,
-      max: timeInSeconds.length > 0 ? timeInSeconds[timeInSeconds.length - 1] : 180,
     },
     yAxis: {
       type: 'value',
@@ -80,7 +78,7 @@ const CurrentChart: React.FC<Props> = ({ data, height = 220 }) => {
       {
         name: '实际电流',
         type: 'line',
-        data: timeInSeconds.map((time, i) => [time, currents[i]]),
+        data: currents,
         smooth: true,
         lineStyle: { color: '#ff4d4f', width: 2 },
         itemStyle: { color: '#ff4d4f' },
@@ -99,7 +97,7 @@ const CurrentChart: React.FC<Props> = ({ data, height = 220 }) => {
       {
         name: '正常工作电流',
         type: 'line',
-        data: timeInSeconds.map((time, i) => [time, normalCurrents[i]]),
+        data: normalCurrents,
         smooth: true,
         lineStyle: { color: '#1890ff', width: 2, type: 'dashed' },
         itemStyle: { color: '#1890ff' },
