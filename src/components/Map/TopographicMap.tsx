@@ -20,7 +20,7 @@ export const wellPositions: Record<string, { x: number; y: number; area: string 
 
 const TopographicMap: React.FC<Props> = ({ wells }) => {
   return (
-    <div style={{ position: 'relative', width: '100%', height: '650px' }}>
+    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       {/* Map Container */}
       <svg
         width="100%"

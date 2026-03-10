@@ -153,7 +153,7 @@ const AreaFaultDistributionChart: React.FC<Props> = ({ wells, wellPositions }) =
     ]
   };
 
-  return <ReactECharts option={option} style={{ height: '350px', width: '100%' }} />;
+  return <ReactECharts option={option} style={{ height: '100%', width: '100%' }} />;
 };
 
 export default AreaFaultDistributionChart;

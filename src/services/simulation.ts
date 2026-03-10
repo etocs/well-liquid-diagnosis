@@ -12,6 +12,8 @@ export class SimulationService {
   private turbineCurrentHistory: Map<string, MonitorDataPoint[]> = new Map();
   private readonly MAX_HISTORY_POINTS = 60; // Keep last 60 data points
   private deletedWellIds: Set<string> = new Set(); // Track deleted wells
+  // Wells that should always remain in normal status
+  private readonly ALWAYS_NORMAL_WELLS = new Set(['W001', 'W004', 'W006']);
 
   constructor() {
     this.wells = JSON.parse(JSON.stringify(initialWells)); // Deep clone
@@ -227,6 +229,35 @@ export class SimulationService {
     const currentTime = dayjs().format('HH:mm:ss');
     
     this.wells.forEach(well => {
+      // Skip updates for wells that should always remain normal
+      if (this.ALWAYS_NORMAL_WELLS.has(well.id)) {
+        // Only update turbine current history for normal operation
+        const history = this.turbineCurrentHistory.get(well.id) || [];
+        history.push({
+          time: currentTime,
+          current: 18.5 + (Math.random() - 0.5) * 0.3, // Stable current around 18.5
+          predictCurrent: 19, // Rated current
+        });
+        
+        if (history.length > this.MAX_HISTORY_POINTS) {
+          history.shift();
+        }
+        this.turbineCurrentHistory.set(well.id, history);
+        
+        // Keep well in normal status
+        well.status = 'normal';
+        well.turbineStatus = 'normal';
+        well.turbineCurrent = 18.5;
+        well.liquidHeight = 0;
+        well.segments.forEach(segment => {
+          segment.status = 'normal';
+          segment.liquidHeight = 0;
+          segment.currentValue = 18.5 + (Math.random() - 0.5) * 0.3;
+        });
+        
+        return; // Skip normal update logic
+      }
+      
       // Update turbine current with some randomness
       this.updateTurbineCurrent(well);
 
