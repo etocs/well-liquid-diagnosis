@@ -77,7 +77,7 @@ export const PAGE_SIZE_OPTIONS = ['10', '20', '50', '100'];
 // 图表线条颜色
 export const CHART_COLORS = {
   current: '#ff4d4f',
-  predictCurrent: '#1890ff',
+  normalCurrent: '#1890ff',
   voltage: '#00ffff',
   frequency: '#52c41a',
   intakePressure: '#faad14',
