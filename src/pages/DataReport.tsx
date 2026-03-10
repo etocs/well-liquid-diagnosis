@@ -5,13 +5,16 @@ import WellboreDiagram from '../components/WellDiagram/WellboreDiagram';
 import CurrentChart from '../components/Charts/CurrentChart';
 import type { Well, Statistics, MonitorDataPoint } from '../types';
 import { getWells, getStatistics, getMonitorData } from '../services/api';
+import { useSimulation } from '../contexts/SimulationContext';
 
 const DataReport: React.FC = () => {
   const [wells, setWells] = useState<Well[]>([]);
   const [stats, setStats] = useState<Statistics | null>(null);
   const [dataMap, setDataMap] = useState<Record<string, MonitorDataPoint[]>>({});
   const [loading, setLoading] = useState(true);
+  const { isSimulationRunning } = useSimulation();
 
+  // Initial load
   useEffect(() => {
     Promise.all([getWells(), getStatistics()]).then(async ([w, s]) => {
       setWells(w);
@@ -25,6 +28,31 @@ const DataReport: React.FC = () => {
       setLoading(false);
     });
   }, []);
+
+  // Refresh data periodically when simulation is running
+  useEffect(() => {
+    if (!isSimulationRunning || wells.length === 0) return;
+
+    const refreshInterval = window.setInterval(async () => {
+      // Refresh statistics
+      const s = await getStatistics();
+      setStats(s);
+      
+      // Refresh well data and monitor data
+      const w = await getWells();
+      setWells(w);
+      
+      const map: Record<string, MonitorDataPoint[]> = {};
+      await Promise.all(w.map(async well => {
+        map[well.id] = await getMonitorData(well.id);
+      }));
+      setDataMap(map);
+    }, 3000); // Refresh every 3 seconds
+
+    return () => {
+      clearInterval(refreshInterval);
+    };
+  }, [isSimulationRunning, wells.length]);
 
   return (
     <div className="page-container">

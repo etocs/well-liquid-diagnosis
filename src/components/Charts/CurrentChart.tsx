@@ -133,7 +133,7 @@ const CurrentChart: React.FC<Props> = ({ data, height = 220 }) => {
     ],
   };
 
-  return <ReactECharts option={option} style={{ height }} notMerge />;
+  return <ReactECharts option={option} style={{ height }} notMerge={true} lazyUpdate={true} />;
 };
 
 export default CurrentChart;

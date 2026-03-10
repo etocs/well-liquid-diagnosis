@@ -4,13 +4,16 @@ import CurrentChart from '../components/Charts/CurrentChart';
 import type { Well, MonitorDataPoint } from '../types';
 import { getWells, getMonitorData } from '../services/api';
 import { STATUS_COLORS, STATUS_LABELS } from '../utils/constants';
+import { useSimulation } from '../contexts/SimulationContext';
 
 const CurrentMonitor: React.FC = () => {
   const [wells, setWells] = useState<Well[]>([]);
   const [selectedWellId, setSelectedWellId] = useState<string>('all');
   const [dataMap, setDataMap] = useState<Record<string, MonitorDataPoint[]>>({});
   const [loading, setLoading] = useState(true);
+  const { isSimulationRunning } = useSimulation();
 
+  // Initial load of wells and data
   useEffect(() => {
     getWells().then(async data => {
       setWells(data);
@@ -25,6 +28,25 @@ const CurrentMonitor: React.FC = () => {
       setLoading(false);
     });
   }, []);
+
+  // Refresh data periodically when simulation is running
+  useEffect(() => {
+    if (!isSimulationRunning || wells.length === 0) return;
+
+    const refreshInterval = window.setInterval(async () => {
+      const map: Record<string, MonitorDataPoint[]> = {};
+      await Promise.all(
+        wells.map(async w => {
+          map[w.id] = await getMonitorData(w.id);
+        })
+      );
+      setDataMap(map);
+    }, 3000); // Refresh every 3 seconds
+
+    return () => {
+      clearInterval(refreshInterval);
+    };
+  }, [isSimulationRunning, wells]);
 
   const displayWells = selectedWellId === 'all'
     ? wells
