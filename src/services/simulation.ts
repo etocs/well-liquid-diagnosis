@@ -98,6 +98,10 @@ export class SimulationService {
     this.deletedWellIds.add(wellId);
     this.wells = this.wells.filter(w => w.id !== wellId);
     this.turbineCurrentHistory.delete(wellId);
+    
+    // Persist deleted wells to localStorage
+    localStorage.setItem('deletedSimulatedWells', JSON.stringify(Array.from(this.deletedWellIds)));
+    
     this.notifyWellUpdates();
   }
 

@@ -187,8 +187,8 @@ export const useAlarmSound = (shouldPlay: boolean, soundUrl: string = '/alarm.mp
     
     window.addEventListener('storage', handleStorageChange);
     
-    // Also check periodically for changes in the same tab
-    const intervalId = window.setInterval(updateVolume, 1000);
+    // Check for updates every 2 seconds (for same-tab changes)
+    const intervalId = window.setInterval(updateVolume, 2000);
     
     return () => {
       window.removeEventListener('storage', handleStorageChange);

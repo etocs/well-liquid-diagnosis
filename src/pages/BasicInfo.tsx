@@ -118,11 +118,6 @@ const BasicInfo: React.FC = () => {
     const customWells = data.filter(w => !w.isSimulated);
     localStorage.setItem('customWells', JSON.stringify(customWells));
     
-    // Store deleted simulated wells
-    const deletedWells = localStorage.getItem('deletedSimulatedWells');
-    const deleted = deletedWells ? JSON.parse(deletedWells) : [];
-    localStorage.setItem('deletedSimulatedWells', JSON.stringify(deleted));
-    
     // Update state with all wells
     setWells(data);
   };
@@ -231,7 +226,7 @@ const BasicInfo: React.FC = () => {
     updateRegionWellCounts(newWells);
     
     // Reload data to reflect changes
-    setTimeout(() => loadData(), 100);
+    loadData();
   };
 
   const handleWellSubmit = async () => {
@@ -292,7 +287,7 @@ const BasicInfo: React.FC = () => {
       wellForm.resetFields();
       
       // Reload data to reflect changes
-      setTimeout(() => loadData(), 100);
+      loadData();
     } catch (error) {
       console.error('Validation failed:', error);
     }
