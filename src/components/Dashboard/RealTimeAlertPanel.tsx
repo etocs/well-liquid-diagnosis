@@ -1,14 +1,25 @@
-import React from 'react';
-import { useAlarm } from '../../contexts/AlarmContext';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BellOutlined } from '@ant-design/icons';
+import { getAlarmRecords } from '../../services/api';
+import type { AlarmRecord } from '../../types';
 
 const RealTimeAlertPanel: React.FC = () => {
-  const { alarms } = useAlarm();
+  const [alarms, setAlarms] = useState<AlarmRecord[]>([]);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const fetchAlarms = async () => {
+      const result = await getAlarmRecords({ pageNum: 1, pageSize: 100 });
+      setAlarms(result.list);
+    };
+    fetchAlarms();
+    const interval = setInterval(fetchAlarms, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Get latest 5 unprocessed alarms
-  const recentAlarms = (alarms || []).filter(a => a.processResult === 'unprocessed').slice(0, 5);
+  const recentAlarms = (alarms || []).filter((a: AlarmRecord) => a.processResult === 'unprocessed').slice(0, 5);
 
   return (
     <div style={{
@@ -65,10 +76,10 @@ const RealTimeAlertPanel: React.FC = () => {
           maxHeight: '400px',
           overflowY: 'auto',
         }}>
-          {recentAlarms.map(alarm => {
+          {recentAlarms.map((alarm: AlarmRecord) => {
             const isLiquidAlarm = alarm.faultType.includes('积液');
             const icon = isLiquidAlarm ? '💧' : '⚡';
-            const levelColors = {
+            const levelColors: Record<string, string> = {
               level1: '#ff4d4f',
               level2: '#faad14',
               level3: '#1890ff',

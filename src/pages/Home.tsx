@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Row, Col, Spin } from 'antd';
-import TopographicMap from '../components/Map/TopographicMap';
+import TopographicMap, { wellPositions } from '../components/Map/TopographicMap';
 import QuickActionCard from '../components/Dashboard/QuickActionCard';
 import RealTimeAlertPanel from '../components/Dashboard/RealTimeAlertPanel';
+import AreaFaultTrendChart from '../components/Charts/AreaFaultTrendChart';
+import AreaFaultDistributionChart from '../components/Charts/AreaFaultDistributionChart';
 import type { Well, Statistics } from '../types';
 import { getWells, getStatistics } from '../services/api';
 import { useAlarm } from '../contexts/AlarmContext';
@@ -235,6 +237,67 @@ const Home: React.FC = () => {
         
         <Col xs={24} lg={6}>
           <RealTimeAlertPanel />
+        </Col>
+      </Row>
+
+      {/* Area Fault Analytics - Trend and Distribution */}
+      <Row gutter={[16, 16]} style={{ marginBottom: 20 }}>
+        <Col xs={24} lg={14}>
+          <div className="panel-card">
+            <div className="panel-title" style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 8 
+            }}>
+              <span style={{ fontSize: 18 }}>📈</span>
+              <span>区域故障趋势分析</span>
+              <span style={{ 
+                fontSize: 11, 
+                color: '#8c9eb5', 
+                fontWeight: 400,
+                marginLeft: 8 
+              }}>
+                实时监控各区域故障变化
+              </span>
+            </div>
+            <div style={{ 
+              background: 'rgba(0, 42, 74, 0.3)', 
+              borderRadius: 8, 
+              padding: '16px 12px',
+              border: '1px solid rgba(0, 200, 255, 0.1)'
+            }}>
+              <AreaFaultTrendChart wells={wells} wellPositions={wellPositions} />
+            </div>
+          </div>
+        </Col>
+        
+        <Col xs={24} lg={10}>
+          <div className="panel-card">
+            <div className="panel-title" style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 8 
+            }}>
+              <span style={{ fontSize: 18 }}>🥧</span>
+              <span>区域故障分布</span>
+              <span style={{ 
+                fontSize: 11, 
+                color: '#8c9eb5', 
+                fontWeight: 400,
+                marginLeft: 8 
+              }}>
+                各区域故障占比统计
+              </span>
+            </div>
+            <div style={{ 
+              background: 'rgba(0, 42, 74, 0.3)', 
+              borderRadius: 8, 
+              padding: '16px 12px',
+              border: '1px solid rgba(0, 200, 255, 0.1)'
+            }}>
+              <AreaFaultDistributionChart wells={wells} wellPositions={wellPositions} />
+            </div>
+          </div>
         </Col>
       </Row>
 
