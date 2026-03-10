@@ -33,20 +33,31 @@ const CurrentMonitor: React.FC = () => {
   useEffect(() => {
     if (!isSimulationRunning || wells.length === 0) return;
 
-    const refreshInterval = window.setInterval(async () => {
-      const map: Record<string, MonitorDataPoint[]> = {};
-      await Promise.all(
-        wells.map(async w => {
-          map[w.id] = await getMonitorData(w.id);
-        })
-      );
-      setDataMap(map);
-    }, 3000); // Refresh every 3 seconds
+    let isRefreshing = false;
+    
+    const refresh = async () => {
+      if (isRefreshing) return; // Prevent overlapping requests
+      
+      isRefreshing = true;
+      try {
+        const map: Record<string, MonitorDataPoint[]> = {};
+        await Promise.all(
+          wells.map(async w => {
+            map[w.id] = await getMonitorData(w.id);
+          })
+        );
+        setDataMap(map);
+      } finally {
+        isRefreshing = false;
+      }
+    };
+
+    const refreshInterval = window.setInterval(refresh, 3000);
 
     return () => {
       clearInterval(refreshInterval);
     };
-  }, [isSimulationRunning, wells]);
+  }, [isSimulationRunning, wells.length]); // Use wells.length to avoid recreating interval
 
   const displayWells = selectedWellId === 'all'
     ? wells

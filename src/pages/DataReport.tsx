@@ -33,26 +33,37 @@ const DataReport: React.FC = () => {
   useEffect(() => {
     if (!isSimulationRunning || wells.length === 0) return;
 
-    const refreshInterval = window.setInterval(async () => {
-      // Refresh statistics
-      const s = await getStatistics();
-      setStats(s);
+    let isRefreshing = false;
+    
+    const refresh = async () => {
+      if (isRefreshing) return; // Prevent overlapping requests
       
-      // Refresh well data and monitor data
-      const w = await getWells();
-      setWells(w);
-      
-      const map: Record<string, MonitorDataPoint[]> = {};
-      await Promise.all(w.map(async well => {
-        map[well.id] = await getMonitorData(well.id);
-      }));
-      setDataMap(map);
-    }, 3000); // Refresh every 3 seconds
+      isRefreshing = true;
+      try {
+        // Refresh statistics
+        const s = await getStatistics();
+        setStats(s);
+        
+        // Refresh well data and monitor data
+        const w = await getWells();
+        setWells(w);
+        
+        const map: Record<string, MonitorDataPoint[]> = {};
+        await Promise.all(w.map(async well => {
+          map[well.id] = await getMonitorData(well.id);
+        }));
+        setDataMap(map);
+      } finally {
+        isRefreshing = false;
+      }
+    };
+
+    const refreshInterval = window.setInterval(refresh, 3000);
 
     return () => {
       clearInterval(refreshInterval);
     };
-  }, [isSimulationRunning, wells.length]);
+  }, [isSimulationRunning, wells.length]); // Use wells.length to avoid recreating interval
 
   return (
     <div className="page-container">
