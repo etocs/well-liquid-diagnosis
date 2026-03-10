@@ -51,7 +51,7 @@ export class SimulationService {
         history.push({
           time: now.subtract(i * 3, 'second').format('HH:mm:ss'),
           current: well.turbineCurrent + (Math.random() - 0.5) * 0.5,
-          predictCurrent: 19, // Rated current
+          normalCurrent: 19, // Normal working current
         });
       }
       
@@ -178,7 +178,7 @@ export class SimulationService {
       history.push({
         time: now.subtract(i * 3, 'second').format('HH:mm:ss'),
         current: well.turbineCurrent + (Math.random() - 0.5) * 0.5,
-        predictCurrent: 19,
+        normalCurrent: 19,
       });
     }
     
@@ -236,7 +236,7 @@ export class SimulationService {
         history.push({
           time: currentTime,
           current: 18.5 + (Math.random() - 0.5) * 0.3, // Stable current around 18.5
-          predictCurrent: 19, // Rated current
+          normalCurrent: 19, // Normal working current
         });
         
         if (history.length > this.MAX_HISTORY_POINTS) {
@@ -266,7 +266,7 @@ export class SimulationService {
       history.push({
         time: currentTime,
         current: well.turbineCurrent,
-        predictCurrent: 19, // Rated current
+        normalCurrent: 19, // Normal working current
       });
       
       // Keep only last MAX_HISTORY_POINTS data points
