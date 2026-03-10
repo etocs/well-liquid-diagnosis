@@ -33,11 +33,13 @@ const AlarmManagement: React.FC = () => {
   // Check for AI decision modal when page loads and has unprocessed alarms
   useEffect(() => {
     if (isAIDecisionEnabled() && hasUnprocessedAlarms && records.length > 0) {
-      // Show AI decision modal only once when entering the page with unprocessed alarms
-      const hasShownModal = sessionStorage.getItem('aiModalShown');
-      if (!hasShownModal) {
+      // Show AI decision modal only once per day using localStorage
+      const lastShown = localStorage.getItem('aiModalLastShown');
+      const today = new Date().toDateString();
+      
+      if (lastShown !== today) {
         setShowAIModal(true);
-        sessionStorage.setItem('aiModalShown', 'true');
+        localStorage.setItem('aiModalLastShown', today);
       }
     }
   }, [hasUnprocessedAlarms, records.length]);

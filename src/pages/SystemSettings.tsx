@@ -8,24 +8,9 @@ import {
   RobotOutlined,
   SaveOutlined,
 } from '@ant-design/icons';
+import { SystemSettings, defaultSettings } from '../utils/settings';
 
 const { Option } = Select;
-
-interface SystemSettings {
-  alarmInterval: number; // 报警时间间隔（秒）
-  alarmVolume: number; // 报警声音大小（0-100）
-  pushType: 'none' | 'wechat' | 'dingtalk' | 'feishu'; // 推送类型
-  pushEnabled: boolean; // 是否启用推送
-  aiDecisionEnabled: boolean; // 是否启用AI辅助决策
-}
-
-const defaultSettings: SystemSettings = {
-  alarmInterval: 30,
-  alarmVolume: 50,
-  pushType: 'none',
-  pushEnabled: false,
-  aiDecisionEnabled: false,
-};
 
 const SystemSettingsPage: React.FC = () => {
   const [form] = Form.useForm();
