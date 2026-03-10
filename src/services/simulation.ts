@@ -183,7 +183,10 @@ export class SimulationService {
       const newStatus = statuses[Math.floor(Math.random() * statuses.length)];
       if (newStatus !== well.turbineStatus) {
         well.turbineStatus = newStatus;
-        this.generateTurbineAlarm(well);
+        // Only generate alarm for abnormal turbine states (unstable or stopped), not for normal
+        if (newStatus !== 'normal') {
+          this.generateTurbineAlarm(well);
+        }
       }
     }
   }
@@ -219,6 +222,7 @@ export class SimulationService {
 
   /**
    * Update well status based on segments and turbine
+   * Note: Only stopped turbine is a fault, unstable is warning, normal is not counted
    */
   private updateWellStatus(well: Well) {
     const hasFault = well.segments.some(s => s.status === 'fault') || well.turbineStatus === 'stopped';

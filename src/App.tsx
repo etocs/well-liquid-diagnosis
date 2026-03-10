@@ -10,7 +10,8 @@ import AlarmManagement from './pages/AlarmManagement';
 import AlarmHistory from './pages/AlarmHistory';
 import CurrentMonitor from './pages/CurrentMonitor';
 import LiquidDiagnosis from './pages/LiquidDiagnosis';
-import PlaceholderPage from './pages/PlaceholderPage';
+import BasicInfo from './pages/BasicInfo';
+import SystemSettings from './pages/SystemSettings';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import { isAuthenticated } from './utils/auth';
@@ -150,8 +151,8 @@ const AppContent: React.FC = () => {
             <Route path="report" element={<DataReport />} />
             <Route path="alarm" element={<AlarmManagement />} />
             <Route path="alarm/history" element={<AlarmHistory />} />
-            <Route path="info" element={<PlaceholderPage title="基础信息" />} />
-            <Route path="system" element={<PlaceholderPage title="系统管理" />} />
+            <Route path="info" element={<BasicInfo />} />
+            <Route path="system" element={<SystemSettings />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
