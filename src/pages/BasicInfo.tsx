@@ -259,9 +259,12 @@ const BasicInfo: React.FC = () => {
       } else {
         // Add new well
         const newWellId = `W-${Date.now()}`;
+        // Auto-generate well name: Region + Well Name
+        const fullWellName = `${region.name}-${values.name}`;
+        
         const newWell: WellSegmentInfo = {
           id: newWellId,
-          name: values.name,
+          name: fullWellName,
           regionId: values.regionId,
           regionName: region.name,
           depth: values.depth,
@@ -272,7 +275,7 @@ const BasicInfo: React.FC = () => {
         // Add to simulation service
         simulationService.addWell({
           id: newWellId,
-          name: values.name,
+          name: fullWellName,
           zone: region.name,
           depth: values.depth,
         });
@@ -280,7 +283,7 @@ const BasicInfo: React.FC = () => {
         const newWells = [...wells, newWell];
         saveWells(newWells);
         updateRegionWellCounts(newWells);
-        message.success('井段添加成功，已在数据大屏显示');
+        message.success(`井段添加成功: ${fullWellName}，已在数据大屏显示`);
       }
       
       setWellModalVisible(false);
@@ -569,8 +572,9 @@ const BasicInfo: React.FC = () => {
             label="井段名称"
             name="name"
             rules={[{ required: true, message: '请输入井段名称' }]}
+            extra="提示：最终名称将为 [区域]-[井段名称]，例如：A区-1号井段"
           >
-            <Input placeholder="例如：1号井段、A-01井" />
+            <Input placeholder="例如：1号井段、2号井管" />
           </Form.Item>
           
           <Form.Item

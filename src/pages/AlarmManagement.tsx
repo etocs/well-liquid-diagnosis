@@ -29,15 +29,9 @@ const AlarmManagement: React.FC = () => {
   useEffect(() => {
     const hasUnprocessedAlarms = records.some(r => r.processResult === PROCESS_RESULT.UNPROCESSED);
     
+    // Show AI modal every time the page is loaded with unprocessed alarms, if AI is enabled
     if (isAIDecisionEnabled() && hasUnprocessedAlarms && records.length > 0) {
-      // Show AI decision modal only once per day using localStorage
-      const lastShown = localStorage.getItem('aiModalLastShown');
-      const today = new Date().toDateString();
-      
-      if (lastShown !== today) {
-        setShowAIModal(true);
-        localStorage.setItem('aiModalLastShown', today);
-      }
+      setShowAIModal(true);
     }
   }, [records]);
 
@@ -105,22 +99,34 @@ const AlarmManagement: React.FC = () => {
     const suggestions: string[] = [];
     
     unprocessedAlarms.forEach(alarm => {
+      let confidence = 0;
+      let suggestion = '';
+      
       if (alarm.faultLevel) {
         // Liquid level alarms
         if (alarm.faultLevel === 'level1') {
-          suggestions.push(`【${alarm.wellName}】积液一级严重，建议立即启动雾化装置进行排液处理，同时调低生产压力20%`);
+          confidence = 95;
+          suggestion = `【${alarm.wellName}】积液一级严重，建议立即启动雾化装置进行排液处理，同时调低生产压力20% (置信度: ${confidence}%)`;
         } else if (alarm.faultLevel === 'level2') {
-          suggestions.push(`【${alarm.wellName}】积液二级预警，建议启动间歇式雾化排液，监控积液变化趋势`);
+          confidence = 88;
+          suggestion = `【${alarm.wellName}】积液二级预警，建议启动间歇式雾化排液，监控积液变化趋势 (置信度: ${confidence}%)`;
         } else if (alarm.faultLevel === 'level3') {
-          suggestions.push(`【${alarm.wellName}】积液三级轻微，建议加强监控，如继续上升则启动排液措施`);
+          confidence = 82;
+          suggestion = `【${alarm.wellName}】积液三级轻微，建议加强监控，如继续上升则启动排液措施 (置信度: ${confidence}%)`;
         }
       } else if (alarm.turbineStatus) {
         // Turbine alarms
         if (alarm.turbineStatus === 'stopped') {
-          suggestions.push(`【${alarm.wellName}】涡轮机停止运行，建议立即停产检修，检查电机和传动系统`);
+          confidence = 92;
+          suggestion = `【${alarm.wellName}】涡轮机停止运行，建议立即停产检修，检查电机和传动系统 (置信度: ${confidence}%)`;
         } else if (alarm.turbineStatus === 'unstable') {
-          suggestions.push(`【${alarm.wellName}】涡轮机运行不稳定，建议检查负载情况，必要时调整运行参数`);
+          confidence = 85;
+          suggestion = `【${alarm.wellName}】涡轮机运行不稳定，建议检查负载情况，必要时调整运行参数 (置信度: ${confidence}%)`;
         }
+      }
+      
+      if (suggestion) {
+        suggestions.push(suggestion);
       }
     });
     

@@ -108,6 +108,7 @@ export class SimulationService {
   /**
    * Add a new well to simulation
    * Uses C区-2号井管 (W007) as template
+   * Automatically generates alarms for new wells with fault status
    */
   addWell(wellData: { id: string; name: string; zone: string; depth: number }) {
     // Find template well (C区-2号井管)
@@ -134,9 +135,34 @@ export class SimulationService {
     
     this.wells.push(newWell);
     this.initializeTurbineHistoryForWell(newWell);
+    
+    // Generate initial alarms for new well if it has fault status
+    this.generateInitialAlarmsForNewWell(newWell);
+    
     this.notifyWellUpdates();
     
     return newWell;
+  }
+
+  /**
+   * Generate initial alarms for newly added wells
+   */
+  private generateInitialAlarmsForNewWell(well: Well) {
+    // Generate turbine alarm if turbine status is not normal
+    if (well.turbineStatus !== 'normal') {
+      this.generateTurbineAlarm(well);
+    }
+    
+    // Generate liquid level alarms for segments with liquid accumulation
+    well.segments.forEach(segment => {
+      if (segment.liquidHeight >= 20) {
+        this.generateLiquidAlarm(well, segment, 'level1');
+      } else if (segment.liquidHeight >= 5) {
+        this.generateLiquidAlarm(well, segment, 'level2');
+      } else if (segment.liquidHeight > 0) {
+        this.generateLiquidAlarm(well, segment, 'level3');
+      }
+    });
   }
 
   /**
