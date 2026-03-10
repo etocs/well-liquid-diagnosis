@@ -3,15 +3,17 @@ import { Row, Col, Tag } from 'antd';
 import CurrentChart from '../components/Charts/CurrentChart';
 import StatusCard from '../components/Dashboard/StatusCard';
 import type { Well, MonitorDataPoint } from '../types';
-import { getWells, getMonitorData } from '../services/api';
+import { getWells, getTurbineCurrentData } from '../services/api';
 import { STATUS_COLORS, CURRENT_THRESHOLDS } from '../utils/constants';
 import { diagnoseByCurrent } from '../utils/diagnosis';
+import { useSimulation } from '../contexts/SimulationContext';
 
 const ProductionMonitor: React.FC = () => {
   const [wells, setWells] = useState<Well[]>([]);
   const [selectedWell, setSelectedWell] = useState<Well | null>(null);
   const [monitorData, setMonitorData] = useState<MonitorDataPoint[]>([]);
   const [loading, setLoading] = useState(false);
+  const { isSimulationRunning } = useSimulation();
 
   useEffect(() => {
     getWells().then(data => {
@@ -22,15 +24,31 @@ const ProductionMonitor: React.FC = () => {
     });
   }, []);
 
+  // Load turbine current data for selected well
   useEffect(() => {
     if (selectedWell) {
       setLoading(true);
-      getMonitorData(selectedWell.id).then(data => {
+      getTurbineCurrentData(selectedWell.id).then(data => {
         setMonitorData(data);
         setLoading(false);
       });
     }
   }, [selectedWell]);
+
+  // Refresh data periodically when simulation is running
+  useEffect(() => {
+    if (!selectedWell || !isSimulationRunning) return;
+
+    const refreshInterval = window.setInterval(() => {
+      getTurbineCurrentData(selectedWell.id).then(data => {
+        setMonitorData(data);
+      });
+    }, 3000); // Refresh every 3 seconds
+
+    return () => {
+      clearInterval(refreshInterval);
+    };
+  }, [selectedWell, isSimulationRunning]);
 
   const diagnosis = monitorData.length > 0 ? diagnoseByCurrent(monitorData) : null;
   const latest = monitorData.length > 0 ? monitorData[monitorData.length - 1] : null;

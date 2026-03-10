@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Card, Row, Col, Button, Table, Modal, Form, Input, Select, message, 
-  Popconfirm, Space, Tag 
+  Popconfirm, Space, Tag, Statistic 
 } from 'antd';
 import {
   PlusOutlined,
@@ -9,6 +9,9 @@ import {
   DeleteOutlined,
   EnvironmentOutlined,
   AppstoreOutlined,
+  DatabaseOutlined,
+  CheckCircleOutlined,
+  ExperimentOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import type { Well } from '../types';
@@ -375,40 +378,62 @@ const BasicInfo: React.FC = () => {
       title: '井段ID',
       dataIndex: 'id',
       key: 'id',
-      width: 150,
+      width: 100,
+      render: (text: string) => (
+        <span style={{ color: '#8c9eb5', fontSize: 12, fontFamily: 'monospace' }}>
+          {text}
+        </span>
+      ),
     },
     {
       title: '井段名称',
-      dataIndex: 'name',
       key: 'name',
-      render: (text, record) => (
-        <span>
-          <AppstoreOutlined style={{ marginRight: 8, color: '#00ffff' }} />
-          {text}
+      render: (_: unknown, record: WellSegmentInfo) => (
+        <Space>
+          <AppstoreOutlined style={{ color: '#1890ff' }} />
+          <span style={{ color: '#00ffff', fontWeight: 600 }}>
+            {record.name}
+          </span>
           {record.isSimulated && (
-            <Tag color="blue" style={{ marginLeft: 8, fontSize: 10 }}>模拟</Tag>
+            <Tag color="orange" icon={<ExperimentOutlined />} style={{ fontSize: 11 }}>
+              模拟
+            </Tag>
           )}
-        </span>
+        </Space>
       ),
     },
     {
       title: '所属区域',
       dataIndex: 'regionName',
       key: 'regionName',
-      width: 150,
-      render: (text) => <Tag color="green">{text}</Tag>,
+      width: 120,
+      render: (text: string) => (
+        <Tag color="cyan" style={{ fontSize: 12 }}>
+          <EnvironmentOutlined style={{ marginRight: 4 }} />
+          {text}
+        </Tag>
+      ),
     },
     {
       title: '深度 (m)',
       dataIndex: 'depth',
       key: 'depth',
-      width: 120,
+      width: 100,
+      render: (depth: number) => (
+        <span style={{ color: '#52c41a', fontWeight: 600 }}>
+          {depth}
+        </span>
+      ),
     },
     {
       title: '描述',
-      dataIndex: 'description',
       key: 'description',
       ellipsis: true,
+      render: (_: unknown, record: WellSegmentInfo) => (
+        <span style={{ color: '#8c9eb5', fontSize: 12 }}>
+          {record.description || '-'}
+        </span>
+      ),
     },
     {
       title: '操作',
@@ -422,6 +447,7 @@ const BasicInfo: React.FC = () => {
               icon={<EditOutlined />}
               onClick={() => handleEditWell(record)}
               size="small"
+              style={{ color: '#1890ff' }}
             >
               编辑
             </Button>
@@ -448,14 +474,23 @@ const BasicInfo: React.FC = () => {
 
   return (
     <div className="page-container">
+      {/* Header */}
       <div style={{
         background: 'linear-gradient(135deg, #002244, #003366)',
         border: '1px solid #1d3a5c',
         borderRadius: 8,
         padding: '20px 24px',
         marginBottom: 20,
+        boxShadow: '0 4px 12px rgba(0, 255, 255, 0.1)',
       }}>
-        <h1 style={{ color: '#00ffff', fontSize: 24, fontWeight: 600, margin: 0 }}>
+        <h1 style={{ 
+          color: '#00ffff', 
+          fontSize: 24, 
+          fontWeight: 600, 
+          margin: 0,
+          textShadow: '0 0 10px rgba(0, 255, 255, 0.5)',
+        }}>
+          <DatabaseOutlined style={{ marginRight: 12 }} />
           基础信息管理
         </h1>
         <p style={{ color: '#8c9eb5', fontSize: 14, margin: '8px 0 0 0' }}>
@@ -463,12 +498,82 @@ const BasicInfo: React.FC = () => {
         </p>
       </div>
 
+      {/* Statistics Cards */}
+      <Row gutter={[16, 16]} style={{ marginBottom: 20 }}>
+        <Col xs={24} sm={8}>
+          <Card
+            style={{
+              background: 'linear-gradient(135deg, #001529, #002a4a)',
+              border: '1px solid #1d3a5c',
+              borderRadius: 8,
+              boxShadow: '0 2px 8px rgba(0, 255, 255, 0.1)',
+            }}
+          >
+            <Statistic
+              title={
+                <span style={{ color: '#8c9eb5', fontSize: 13 }}>
+                  <EnvironmentOutlined style={{ marginRight: 6 }} />
+                  区域总数
+                </span>
+              }
+              value={regions.length}
+              valueStyle={{ color: '#00ffff', fontWeight: 700, fontSize: 32 }}
+              suffix="个"
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={8}>
+          <Card
+            style={{
+              background: 'linear-gradient(135deg, #001529, #002a4a)',
+              border: '1px solid #1d3a5c',
+              borderRadius: 8,
+              boxShadow: '0 2px 8px rgba(0, 255, 255, 0.1)',
+            }}
+          >
+            <Statistic
+              title={
+                <span style={{ color: '#8c9eb5', fontSize: 13 }}>
+                  <AppstoreOutlined style={{ marginRight: 6 }} />
+                  井段总数
+                </span>
+              }
+              value={wells.length}
+              valueStyle={{ color: '#52c41a', fontWeight: 700, fontSize: 32 }}
+              suffix="个"
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={8}>
+          <Card
+            style={{
+              background: 'linear-gradient(135deg, #001529, #002a4a)',
+              border: '1px solid #1d3a5c',
+              borderRadius: 8,
+              boxShadow: '0 2px 8px rgba(0, 255, 255, 0.1)',
+            }}
+          >
+            <Statistic
+              title={
+                <span style={{ color: '#8c9eb5', fontSize: 13 }}>
+                  <ExperimentOutlined style={{ marginRight: 6 }} />
+                  模拟井段
+                </span>
+              }
+              value={wells.filter(w => w.isSimulated).length}
+              valueStyle={{ color: '#faad14', fontWeight: 700, fontSize: 32 }}
+              suffix="个"
+            />
+          </Card>
+        </Col>
+      </Row>
+
       <Row gutter={[16, 16]}>
         {/* Regions */}
         <Col xs={24} lg={12}>
           <Card
             title={
-              <span>
+              <span style={{ color: '#00ffff', fontSize: 15, fontWeight: 600 }}>
                 <EnvironmentOutlined style={{ marginRight: 8 }} />
                 区域管理
               </span>
@@ -478,11 +583,24 @@ const BasicInfo: React.FC = () => {
                 type="primary"
                 icon={<PlusOutlined />}
                 onClick={handleAddRegion}
+                style={{
+                  background: 'linear-gradient(135deg, #1890ff, #096dd9)',
+                  border: 'none',
+                  boxShadow: '0 2px 8px rgba(24, 144, 255, 0.3)',
+                }}
               >
                 添加区域
               </Button>
             }
-            className="panel-card"
+            style={{
+              background: '#001529',
+              border: '1px solid #1d3a5c',
+              borderRadius: 8,
+            }}
+            headStyle={{
+              borderBottom: '1px solid #1d3a5c',
+              background: '#002244',
+            }}
           >
             <Table
               dataSource={regions}
@@ -490,6 +608,9 @@ const BasicInfo: React.FC = () => {
               rowKey="id"
               pagination={false}
               size="small"
+              style={{
+                background: 'transparent',
+              }}
             />
           </Card>
         </Col>
@@ -498,7 +619,7 @@ const BasicInfo: React.FC = () => {
         <Col xs={24} lg={12}>
           <Card
             title={
-              <span>
+              <span style={{ color: '#00ffff', fontSize: 15, fontWeight: 600 }}>
                 <AppstoreOutlined style={{ marginRight: 8 }} />
                 井段管理
               </span>
@@ -509,18 +630,38 @@ const BasicInfo: React.FC = () => {
                 icon={<PlusOutlined />}
                 onClick={handleAddWell}
                 disabled={regions.length === 0}
+                style={{
+                  background: regions.length === 0 ? undefined : 'linear-gradient(135deg, #52c41a, #389e0d)',
+                  border: 'none',
+                  boxShadow: regions.length === 0 ? undefined : '0 2px 8px rgba(82, 196, 26, 0.3)',
+                }}
               >
                 添加井段
               </Button>
             }
-            className="panel-card"
+            style={{
+              background: '#001529',
+              border: '1px solid #1d3a5c',
+              borderRadius: 8,
+            }}
+            headStyle={{
+              borderBottom: '1px solid #1d3a5c',
+              background: '#002244',
+            }}
           >
             <Table
               dataSource={wells}
               columns={wellColumns}
               rowKey="id"
-              pagination={{ pageSize: 10 }}
+              pagination={{ 
+                pageSize: 10,
+                showSizeChanger: false,
+                style: { marginBottom: 0 }
+              }}
               size="small"
+              style={{
+                background: 'transparent',
+              }}
             />
           </Card>
         </Col>
