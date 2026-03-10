@@ -11,6 +11,8 @@ import {
   AppstoreOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
+import type { Well } from '../types';
+import { getSimulationService } from '../services/simulation';
 
 const { Option } = Select;
 
@@ -27,6 +29,7 @@ interface WellSegmentInfo {
   regionName: string;
   depth: number;
   description?: string;
+  isSimulated?: boolean; // Flag to indicate if this is from simulation data
 }
 
 const BasicInfo: React.FC = () => {
@@ -38,26 +41,68 @@ const BasicInfo: React.FC = () => {
   const [editingWell, setEditingWell] = useState<WellSegmentInfo | null>(null);
   const [regionForm] = Form.useForm();
   const [wellForm] = Form.useForm();
+  const simulationService = getSimulationService();
 
-  // Load data from localStorage
+  // Load data from localStorage and merge with simulation data
   useEffect(() => {
     loadData();
   }, []);
 
   const loadData = () => {
     try {
+      // Get simulation wells
+      const simWells: Well[] = simulationService.getWells();
+      
+      // Convert simulation wells to WellSegmentInfo format
+      const simulatedWellSegments: WellSegmentInfo[] = simWells.map(well => ({
+        id: well.id,
+        name: well.name,
+        regionId: well.zone,
+        regionName: well.zone,
+        depth: well.segments[well.segments.length - 1]?.depth || 1500,
+        description: `模拟数据 - ${well.segments.length}个井段`,
+        isSimulated: true,
+      }));
+      
+      // Get custom regions and wells from localStorage
       const savedRegions = localStorage.getItem('customRegions');
       const savedWells = localStorage.getItem('customWells');
       
+      let customRegions: Region[] = [];
+      let customWells: WellSegmentInfo[] = [];
+      
       if (savedRegions) {
-        const parsed = JSON.parse(savedRegions);
-        setRegions(parsed);
+        customRegions = JSON.parse(savedRegions);
       }
       
       if (savedWells) {
-        const parsed = JSON.parse(savedWells);
-        setWells(parsed);
+        customWells = JSON.parse(savedWells);
       }
+      
+      // Extract unique regions from simulation data
+      const simRegionNames = Array.from(new Set(simWells.map(w => w.zone)));
+      const simRegions: Region[] = simRegionNames.map(name => ({
+        id: name,
+        name: name,
+        wellCount: simulatedWellSegments.filter(w => w.regionName === name).length,
+      }));
+      
+      // Merge regions (custom + simulation)
+      const allRegions = [...simRegions];
+      customRegions.forEach(cr => {
+        if (!allRegions.find(r => r.id === cr.id)) {
+          allRegions.push(cr);
+        }
+      });
+      
+      // Update well counts
+      const allWells = [...simulatedWellSegments, ...customWells];
+      allRegions.forEach(region => {
+        region.wellCount = allWells.filter(w => w.regionId === region.id).length;
+      });
+      
+      setRegions(allRegions);
+      setWells(allWells);
     } catch (e) {
       console.error('Failed to load data:', e);
     }
@@ -69,7 +114,16 @@ const BasicInfo: React.FC = () => {
   };
 
   const saveWells = (data: WellSegmentInfo[]) => {
-    localStorage.setItem('customWells', JSON.stringify(data));
+    // Only save custom wells (not simulated ones)
+    const customWells = data.filter(w => !w.isSimulated);
+    localStorage.setItem('customWells', JSON.stringify(customWells));
+    
+    // Store deleted simulated wells
+    const deletedWells = localStorage.getItem('deletedSimulatedWells');
+    const deleted = deletedWells ? JSON.parse(deletedWells) : [];
+    localStorage.setItem('deletedSimulatedWells', JSON.stringify(deleted));
+    
+    // Update state with all wells
     setWells(data);
   };
 
@@ -152,13 +206,32 @@ const BasicInfo: React.FC = () => {
   };
 
   const handleDeleteWell = (wellId: string) => {
+    const well = wells.find(w => w.id === wellId);
+    if (!well) return;
+    
+    // If it's a simulated well, mark it as deleted
+    if (well.isSimulated) {
+      const deletedWells = localStorage.getItem('deletedSimulatedWells');
+      const deleted: string[] = deletedWells ? JSON.parse(deletedWells) : [];
+      deleted.push(wellId);
+      localStorage.setItem('deletedSimulatedWells', JSON.stringify(deleted));
+      
+      // Remove from simulation service
+      simulationService.removeWell(wellId);
+      
+      message.success(`已删除井段: ${well.name}，将不再显示和生成报警`);
+    } else {
+      message.success('自定义井段删除成功');
+    }
+    
     const newWells = wells.filter(w => w.id !== wellId);
     saveWells(newWells);
     
     // Update region well count
     updateRegionWellCounts(newWells);
     
-    message.success('井段删除成功');
+    // Reload data to reflect changes
+    setTimeout(() => loadData(), 100);
   };
 
   const handleWellSubmit = async () => {
@@ -190,22 +263,36 @@ const BasicInfo: React.FC = () => {
         message.success('井段更新成功');
       } else {
         // Add new well
+        const newWellId = `W-${Date.now()}`;
         const newWell: WellSegmentInfo = {
-          id: `W-${Date.now()}`,
+          id: newWellId,
           name: values.name,
           regionId: values.regionId,
           regionName: region.name,
           depth: values.depth,
           description: values.description,
+          isSimulated: false, // Custom well
         };
+        
+        // Add to simulation service
+        simulationService.addWell({
+          id: newWellId,
+          name: values.name,
+          zone: region.name,
+          depth: values.depth,
+        });
+        
         const newWells = [...wells, newWell];
         saveWells(newWells);
         updateRegionWellCounts(newWells);
-        message.success('井段添加成功');
+        message.success('井段添加成功，已在数据大屏显示');
       }
       
       setWellModalVisible(false);
       wellForm.resetFields();
+      
+      // Reload data to reflect changes
+      setTimeout(() => loadData(), 100);
     } catch (error) {
       console.error('Validation failed:', error);
     }
@@ -296,10 +383,13 @@ const BasicInfo: React.FC = () => {
       title: '井段名称',
       dataIndex: 'name',
       key: 'name',
-      render: (text) => (
-        <span style={{ color: '#00ffff', fontWeight: 600 }}>
-          <AppstoreOutlined style={{ marginRight: 8 }} />
+      render: (text, record) => (
+        <span>
+          <AppstoreOutlined style={{ marginRight: 8, color: '#00ffff' }} />
           {text}
+          {record.isSimulated && (
+            <Tag color="blue" style={{ marginLeft: 8, fontSize: 10 }}>模拟</Tag>
+          )}
         </span>
       ),
     },
@@ -328,16 +418,18 @@ const BasicInfo: React.FC = () => {
       width: 150,
       render: (_, record) => (
         <Space>
-          <Button
-            type="link"
-            icon={<EditOutlined />}
-            onClick={() => handleEditWell(record)}
-            size="small"
-          >
-            编辑
-          </Button>
+          {!record.isSimulated && (
+            <Button
+              type="link"
+              icon={<EditOutlined />}
+              onClick={() => handleEditWell(record)}
+              size="small"
+            >
+              编辑
+            </Button>
+          )}
           <Popconfirm
-            title="确认删除该井段？"
+            title={record.isSimulated ? "删除后将不再显示此井段和生成报警，确认删除？" : "确认删除该井段？"}
             onConfirm={() => handleDeleteWell(record.id)}
             okText="确认"
             cancelText="取消"

@@ -3,7 +3,7 @@
 export interface SystemSettings {
   alarmInterval: number; // 报警时间间隔（秒）
   alarmVolume: number; // 报警声音大小（0-100）
-  pushType: 'none' | 'wechat' | 'dingtalk' | 'feishu'; // 推送类型
+  pushType: 'none' | 'wechat' | 'dingtalk' | 'feishu' | 'cnpc'; // 推送类型 (cnpc = 中油即时通讯)
   pushEnabled: boolean; // 是否启用推送
   aiDecisionEnabled: boolean; // 是否启用AI辅助决策
 }

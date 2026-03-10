@@ -11,10 +11,29 @@ export class SimulationService {
   private alarmCallbacks: Array<(alarms: AlarmRecord[]) => void> = [];
   private turbineCurrentHistory: Map<string, MonitorDataPoint[]> = new Map();
   private readonly MAX_HISTORY_POINTS = 60; // Keep last 60 data points
+  private deletedWellIds: Set<string> = new Set(); // Track deleted wells
 
   constructor() {
     this.wells = JSON.parse(JSON.stringify(initialWells)); // Deep clone
+    this.loadDeletedWells();
     this.initializeTurbineHistory();
+  }
+
+  /**
+   * Load deleted wells from localStorage
+   */
+  private loadDeletedWells() {
+    try {
+      const deleted = localStorage.getItem('deletedSimulatedWells');
+      if (deleted) {
+        const deletedIds: string[] = JSON.parse(deleted);
+        this.deletedWellIds = new Set(deletedIds);
+        // Remove deleted wells from the wells array
+        this.wells = this.wells.filter(w => !this.deletedWellIds.has(w.id));
+      }
+    } catch (e) {
+      console.error('Failed to load deleted wells:', e);
+    }
   }
 
   /**
@@ -67,8 +86,71 @@ export class SimulationService {
   reset() {
     this.stop();
     this.wells = JSON.parse(JSON.stringify(initialWells));
+    this.loadDeletedWells(); // Re-apply deletions
     this.initializeTurbineHistory();
     this.notifyWellUpdates();
+  }
+
+  /**
+   * Remove a well from simulation (soft delete)
+   */
+  removeWell(wellId: string) {
+    this.deletedWellIds.add(wellId);
+    this.wells = this.wells.filter(w => w.id !== wellId);
+    this.turbineCurrentHistory.delete(wellId);
+    this.notifyWellUpdates();
+  }
+
+  /**
+   * Add a new well to simulation
+   * Uses C区-2号井管 (W007) as template
+   */
+  addWell(wellData: { id: string; name: string; zone: string; depth: number }) {
+    // Find template well (C区-2号井管)
+    const templateWell = initialWells.find(w => w.id === 'W007') || initialWells[0];
+    
+    // Create new well based on template
+    const newWell: Well = {
+      id: wellData.id,
+      name: wellData.name,
+      zone: wellData.zone,
+      status: templateWell.status,
+      liquidHeight: templateWell.liquidHeight,
+      turbineStatus: templateWell.turbineStatus,
+      turbineCurrent: templateWell.turbineCurrent,
+      segments: templateWell.segments.map((seg, idx) => ({
+        id: `${wellData.id}-S${idx + 1}`,
+        segmentName: `井段${idx + 1}`,
+        depth: Math.round((wellData.depth / templateWell.segments.length) * (idx + 1)),
+        currentValue: seg.currentValue,
+        status: seg.status,
+        liquidHeight: seg.liquidHeight,
+      })),
+    };
+    
+    this.wells.push(newWell);
+    this.initializeTurbineHistoryForWell(newWell);
+    this.notifyWellUpdates();
+    
+    return newWell;
+  }
+
+  /**
+   * Initialize turbine history for a specific well
+   */
+  private initializeTurbineHistoryForWell(well: Well) {
+    const history: MonitorDataPoint[] = [];
+    const now = dayjs();
+    
+    for (let i = this.MAX_HISTORY_POINTS - 1; i >= 0; i--) {
+      history.push({
+        time: now.subtract(i * 3, 'second').format('HH:mm:ss'),
+        current: well.turbineCurrent + (Math.random() - 0.5) * 0.5,
+        predictCurrent: 19,
+      });
+    }
+    
+    this.turbineCurrentHistory.set(well.id, history);
   }
 
   /**

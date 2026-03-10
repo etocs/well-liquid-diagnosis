@@ -6,7 +6,6 @@ import CurrentChart from '../components/Charts/CurrentChart';
 import type { AlarmRecord, MonitorDataPoint } from '../types';
 import { getAlarmRecords, getMonitorData, processAlarm } from '../services/api';
 import { FAULT_LEVEL_LABELS, FAULT_LEVEL_COLORS, PROCESS_RESULT } from '../utils/constants';
-import { useAlarmSound } from '../hooks/useAlarmSound';
 import { formatDateTime } from '../utils/date';
 import { useAlarm } from '../contexts/AlarmContext';
 import { isAIDecisionEnabled } from '../utils/settings';
@@ -26,12 +25,10 @@ const AlarmManagement: React.FC = () => {
   const [aiLoading, setAiLoading] = useState(false);
   const { refreshAlarmCount } = useAlarm();
   
-  // Check if there are any unprocessed alarms to trigger alarm sound
-  const hasUnprocessedAlarms = records.some(r => r.processResult === PROCESS_RESULT.UNPROCESSED);
-  useAlarmSound(hasUnprocessedAlarms);
-
   // Check for AI decision modal when page loads and has unprocessed alarms
   useEffect(() => {
+    const hasUnprocessedAlarms = records.some(r => r.processResult === PROCESS_RESULT.UNPROCESSED);
+    
     if (isAIDecisionEnabled() && hasUnprocessedAlarms && records.length > 0) {
       // Show AI decision modal only once per day using localStorage
       const lastShown = localStorage.getItem('aiModalLastShown');
@@ -42,7 +39,7 @@ const AlarmManagement: React.FC = () => {
         localStorage.setItem('aiModalLastShown', today);
       }
     }
-  }, [hasUnprocessedAlarms, records.length]);
+  }, [records]);
 
   useEffect(() => {
     const fetchData = async () => {

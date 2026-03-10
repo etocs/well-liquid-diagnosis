@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ConfigProvider, theme } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import MainLayout from './components/Layout/MainLayout';
+import GlobalAlarmSound from './components/GlobalAlarmSound';
 import Home from './pages/Home';
 import ProductionMonitor from './pages/ProductionMonitor';
 import DataReport from './pages/DataReport';
@@ -130,6 +131,9 @@ const AppContent: React.FC = () => {
   return (
     <ConfigProvider locale={zhCN} theme={antdTheme}>
       <BrowserRouter>
+        {/* Global alarm sound that works on all pages */}
+        <GlobalAlarmSound />
+        
         <Routes>
           {/* Public routes */}
           <Route path="/login" element={<Login />} />

@@ -176,6 +176,10 @@ const SystemSettingsPage: React.FC = () => {
                     <ApiOutlined style={{ marginRight: 8, color: '#00d6b9' }} />
                     飞书
                   </Option>
+                  <Option value="cnpc">
+                    <ApiOutlined style={{ marginRight: 8, color: '#ed1c24' }} />
+                    中油即时通讯
+                  </Option>
                 </Select>
               </Form.Item>
             </Form>

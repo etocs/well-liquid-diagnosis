@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
+import { getAlarmVolume } from '../utils/settings';
 
 /**
  * Custom hook for managing alarm sounds
  * Supports both custom audio files and generated alarm sounds
+ * Volume is dynamically controlled from system settings
  * 
  * To use a custom sound file:
  * 1. Place your alarm sound file (MP3, WAV, etc.) in the public directory
@@ -18,6 +20,7 @@ export const useAlarmSound = (shouldPlay: boolean, soundUrl: string = '/alarm.mp
   const timeoutRef = useRef<number | null>(null);
   const intervalRef = useRef<number | null>(null);
   const hasInitializedAudio = useRef(false);
+  const gainNodeRef = useRef<GainNode | null>(null);
 
   // Generate an urgent alarm sound using Web Audio API
   const playGeneratedAlarm = () => {
@@ -50,8 +53,10 @@ export const useAlarmSound = (shouldPlay: boolean, soundUrl: string = '/alarm.mp
     oscillator.type = 'sine';
     oscillator.frequency.value = 800; // Start frequency
     
-    // Volume control (0.0 to 1.0) - set to 0.7 for loud and urgent sound
-    gainNode.gain.value = 0.7;
+    // Volume control (0.0 to 1.0) - get from system settings
+    const volume = getAlarmVolume() / 100; // Convert 0-100 to 0.0-1.0
+    gainNode.gain.value = volume;
+    gainNodeRef.current = gainNode;
     
     oscillator.start();
     
@@ -119,7 +124,9 @@ export const useAlarmSound = (shouldPlay: boolean, soundUrl: string = '/alarm.mp
       const audio = new Audio();
       audio.src = soundUrl;
       audio.loop = true;
-      audio.volume = 0.8; // Set volume to 80% for loud sound
+      // Get volume from system settings
+      const volume = getAlarmVolume() / 100; // Convert 0-100 to 0.0-1.0
+      audio.volume = volume;
       
       // Check if the audio file exists
       audio.addEventListener('error', () => {
@@ -154,6 +161,40 @@ export const useAlarmSound = (shouldPlay: boolean, soundUrl: string = '/alarm.mp
       setIsPlaying(false);
     }
   }, [shouldPlay, isPlaying, useGeneratedSound]);
+
+  // Update volume dynamically when settings change
+  useEffect(() => {
+    const updateVolume = () => {
+      const volume = getAlarmVolume() / 100; // Convert 0-100 to 0.0-1.0
+      
+      // Update audio element volume if it exists
+      if (audioRef.current) {
+        audioRef.current.volume = volume;
+      }
+      
+      // Update gain node volume if it exists
+      if (gainNodeRef.current && audioContextRef.current) {
+        gainNodeRef.current.gain.value = volume;
+      }
+    };
+    
+    // Listen for storage changes to update volume in real-time
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'systemSettings') {
+        updateVolume();
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also check periodically for changes in the same tab
+    const intervalId = window.setInterval(updateVolume, 1000);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(intervalId);
+    };
+  }, []);
 
   // Cleanup on unmount
   useEffect(() => {
