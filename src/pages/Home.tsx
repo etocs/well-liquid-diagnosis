@@ -129,7 +129,7 @@ const Home: React.FC = () => {
           {/* Map Section */}
           <div className="panel-card" style={{ 
             marginBottom: 12, 
-            height: '450px',
+            height: '550px',
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden'
@@ -187,7 +187,7 @@ const Home: React.FC = () => {
         {/* Right Column: Alerts + Quick Actions */}
         <Col xs={24} lg={8} style={{ display: 'flex', flexDirection: 'column' }}>
           {/* Real-time Alerts - Top Right */}
-          <div style={{ height: '450px', marginBottom: 12, overflow: 'hidden' }}>
+          <div style={{ height: '550px', marginBottom: 12, overflow: 'hidden' }}>
             <RealTimeAlertPanel />
           </div>
 
