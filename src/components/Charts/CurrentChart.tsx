@@ -8,10 +8,10 @@ interface Props {
 }
 
 const CurrentChart: React.FC<Props> = ({ data, height = 220 }) => {
-  // Use actual HH:mm:ss time from data
+  // Use actual system time from data (HH:mm:ss format)
   const times = data.map(d => d.time);
   const currents = data.map(d => d.current);
-  const predictCurrents = data.map(d => d.predictCurrent);
+  const normalCurrents = data.map(d => d.normalCurrent);
 
   const option = {
     backgroundColor: 'transparent',
@@ -31,7 +31,7 @@ const CurrentChart: React.FC<Props> = ({ data, height = 220 }) => {
       },
     },
     legend: {
-      data: ['实际电流', '预测电流'],
+      data: ['实际电流', '正常工作电流'],
       textStyle: { color: '#8c9eb5', fontSize: 12 },
       top: 4,
       right: 10,
@@ -95,9 +95,9 @@ const CurrentChart: React.FC<Props> = ({ data, height = 220 }) => {
         },
       },
       {
-        name: '预测电流',
+        name: '正常工作电流',
         type: 'line',
-        data: predictCurrents,
+        data: normalCurrents,
         smooth: true,
         lineStyle: { color: '#1890ff', width: 2, type: 'dashed' },
         itemStyle: { color: '#1890ff' },
@@ -133,7 +133,7 @@ const CurrentChart: React.FC<Props> = ({ data, height = 220 }) => {
     ],
   };
 
-  return <ReactECharts option={option} style={{ height }} notMerge />;
+  return <ReactECharts option={option} style={{ height }} notMerge={true} lazyUpdate={true} />;
 };
 
 export default CurrentChart;

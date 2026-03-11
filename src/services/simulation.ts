@@ -11,10 +11,31 @@ export class SimulationService {
   private alarmCallbacks: Array<(alarms: AlarmRecord[]) => void> = [];
   private turbineCurrentHistory: Map<string, MonitorDataPoint[]> = new Map();
   private readonly MAX_HISTORY_POINTS = 60; // Keep last 60 data points
+  private deletedWellIds: Set<string> = new Set(); // Track deleted wells
+  // Wells that should always remain in normal status
+  private readonly ALWAYS_NORMAL_WELLS = new Set(['W001', 'W004', 'W006']);
 
   constructor() {
     this.wells = JSON.parse(JSON.stringify(initialWells)); // Deep clone
+    this.loadDeletedWells();
     this.initializeTurbineHistory();
+  }
+
+  /**
+   * Load deleted wells from localStorage
+   */
+  private loadDeletedWells() {
+    try {
+      const deleted = localStorage.getItem('deletedSimulatedWells');
+      if (deleted) {
+        const deletedIds: string[] = JSON.parse(deleted);
+        this.deletedWellIds = new Set(deletedIds);
+        // Remove deleted wells from the wells array
+        this.wells = this.wells.filter(w => !this.deletedWellIds.has(w.id));
+      }
+    } catch (e) {
+      console.error('Failed to load deleted wells:', e);
+    }
   }
 
   /**
@@ -30,7 +51,7 @@ export class SimulationService {
         history.push({
           time: now.subtract(i * 3, 'second').format('HH:mm:ss'),
           current: well.turbineCurrent + (Math.random() - 0.5) * 0.5,
-          predictCurrent: 19, // Rated current
+          normalCurrent: 19, // Normal working current
         });
       }
       
@@ -67,8 +88,101 @@ export class SimulationService {
   reset() {
     this.stop();
     this.wells = JSON.parse(JSON.stringify(initialWells));
+    this.loadDeletedWells(); // Re-apply deletions
     this.initializeTurbineHistory();
     this.notifyWellUpdates();
+  }
+
+  /**
+   * Remove a well from simulation (soft delete)
+   */
+  removeWell(wellId: string) {
+    this.deletedWellIds.add(wellId);
+    this.wells = this.wells.filter(w => w.id !== wellId);
+    this.turbineCurrentHistory.delete(wellId);
+    
+    // Persist deleted wells to localStorage
+    localStorage.setItem('deletedSimulatedWells', JSON.stringify(Array.from(this.deletedWellIds)));
+    
+    this.notifyWellUpdates();
+  }
+
+  /**
+   * Add a new well to simulation
+   * Uses C区-2号井管 (W007) as template
+   * Automatically generates alarms for new wells with fault status
+   */
+  addWell(wellData: { id: string; name: string; zone: string; depth: number }) {
+    // Find template well (C区-2号井管)
+    const templateWell = initialWells.find(w => w.id === 'W007') || initialWells[0];
+    
+    // Create new well based on template
+    const newWell: Well = {
+      id: wellData.id,
+      name: wellData.name,
+      zone: wellData.zone,
+      status: templateWell.status,
+      liquidHeight: templateWell.liquidHeight,
+      turbineStatus: templateWell.turbineStatus,
+      turbineCurrent: templateWell.turbineCurrent,
+      segments: templateWell.segments.map((seg, idx) => ({
+        id: `${wellData.id}-S${idx + 1}`,
+        segmentName: `井段${idx + 1}`,
+        depth: Math.round((wellData.depth / templateWell.segments.length) * (idx + 1)),
+        currentValue: seg.currentValue,
+        status: seg.status,
+        liquidHeight: seg.liquidHeight,
+      })),
+    };
+    
+    this.wells.push(newWell);
+    this.initializeTurbineHistoryForWell(newWell);
+    
+    // Generate initial alarms for new well if it has fault status
+    this.generateInitialAlarmsForNewWell(newWell);
+    
+    this.notifyWellUpdates();
+    
+    return newWell;
+  }
+
+  /**
+   * Generate initial alarms for newly added wells
+   */
+  private generateInitialAlarmsForNewWell(well: Well) {
+    // Generate turbine alarm if turbine status is not normal
+    if (well.turbineStatus !== 'normal') {
+      this.generateTurbineAlarm(well);
+    }
+    
+    // Generate liquid level alarms for segments with liquid accumulation
+    well.segments.forEach(segment => {
+      if (segment.liquidHeight >= 20) {
+        this.generateLiquidAlarm(well, segment, 'level1');
+      } else if (segment.liquidHeight >= 5) {
+        this.generateLiquidAlarm(well, segment, 'level2');
+      } else if (segment.liquidHeight > 0) {
+        this.generateLiquidAlarm(well, segment, 'level3');
+      }
+    });
+  }
+
+  /**
+   * Initialize turbine history for a specific well
+   */
+  private initializeTurbineHistoryForWell(well: Well) {
+    const history: MonitorDataPoint[] = [];
+    const now = dayjs();
+    
+    for (let i = this.MAX_HISTORY_POINTS - 1; i >= 0; i--) {
+      history.push({
+        time: now.subtract(i * 3, 'second').format('HH:mm:ss'),
+        current: well.turbineCurrent + (Math.random() - 0.5) * 0.5,
+        normalCurrent: 19,
+      });
+    }
+    
+    this.turbineCurrentHistory.set(well.id, history);
   }
 
   /**
@@ -115,6 +229,35 @@ export class SimulationService {
     const currentTime = dayjs().format('HH:mm:ss');
     
     this.wells.forEach(well => {
+      // Skip updates for wells that should always remain normal
+      if (this.ALWAYS_NORMAL_WELLS.has(well.id)) {
+        // Only update turbine current history for normal operation
+        const history = this.turbineCurrentHistory.get(well.id) || [];
+        history.push({
+          time: currentTime,
+          current: 18.5 + (Math.random() - 0.5) * 0.3, // Stable current around 18.5
+          normalCurrent: 19, // Normal working current
+        });
+        
+        if (history.length > this.MAX_HISTORY_POINTS) {
+          history.shift();
+        }
+        this.turbineCurrentHistory.set(well.id, history);
+        
+        // Keep well in normal status
+        well.status = 'normal';
+        well.turbineStatus = 'normal';
+        well.turbineCurrent = 18.5;
+        well.liquidHeight = 0;
+        well.segments.forEach(segment => {
+          segment.status = 'normal';
+          segment.liquidHeight = 0;
+          segment.currentValue = 18.5 + (Math.random() - 0.5) * 0.3;
+        });
+        
+        return; // Skip normal update logic
+      }
+      
       // Update turbine current with some randomness
       this.updateTurbineCurrent(well);
 
@@ -123,7 +266,7 @@ export class SimulationService {
       history.push({
         time: currentTime,
         current: well.turbineCurrent,
-        predictCurrent: 19, // Rated current
+        normalCurrent: 19, // Normal working current
       });
       
       // Keep only last MAX_HISTORY_POINTS data points
@@ -183,7 +326,10 @@ export class SimulationService {
       const newStatus = statuses[Math.floor(Math.random() * statuses.length)];
       if (newStatus !== well.turbineStatus) {
         well.turbineStatus = newStatus;
-        this.generateTurbineAlarm(well);
+        // Only generate alarm for abnormal turbine states (unstable or stopped), not for normal
+        if (newStatus !== 'normal') {
+          this.generateTurbineAlarm(well);
+        }
       }
     }
   }
@@ -219,6 +365,7 @@ export class SimulationService {
 
   /**
    * Update well status based on segments and turbine
+   * Note: Only stopped turbine is a fault, unstable is warning, normal is not counted
    */
   private updateWellStatus(well: Well) {
     const hasFault = well.segments.some(s => s.status === 'fault') || well.turbineStatus === 'stopped';

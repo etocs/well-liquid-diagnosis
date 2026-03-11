@@ -239,12 +239,12 @@ const timeLabels = generateTimeLabels(DATA_COUNT);
 
 function buildMonitorData(
   currentData: number[],
-  predictCurrentData: number[],
+  normalCurrentData: number[],
 ): MonitorDataPoint[] {
   return timeLabels.map((time, i) => ({
     time,
     current: currentData[i],
-    predictCurrent: predictCurrentData[i],
+    normalCurrent: normalCurrentData[i],
   }));
 }
 

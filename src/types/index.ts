@@ -53,7 +53,7 @@ export interface AlarmRecord {
 export interface MonitorDataPoint {
   time: string;
   current: number;        // 实测电流 A
-  predictCurrent: number; // 额定/参考电流 A
+  normalCurrent: number; // 正常工作电流 A (原predictCurrent)
 }
 
 // 水敏电阻传感器数据

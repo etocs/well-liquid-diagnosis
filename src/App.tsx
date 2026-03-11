@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ConfigProvider, theme } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import MainLayout from './components/Layout/MainLayout';
+import GlobalAlarmSound from './components/GlobalAlarmSound';
 import Home from './pages/Home';
 import ProductionMonitor from './pages/ProductionMonitor';
 import DataReport from './pages/DataReport';
@@ -10,7 +11,8 @@ import AlarmManagement from './pages/AlarmManagement';
 import AlarmHistory from './pages/AlarmHistory';
 import CurrentMonitor from './pages/CurrentMonitor';
 import LiquidDiagnosis from './pages/LiquidDiagnosis';
-import PlaceholderPage from './pages/PlaceholderPage';
+import BasicInfo from './pages/BasicInfo';
+import SystemSettings from './pages/SystemSettings';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import { isAuthenticated } from './utils/auth';
@@ -129,6 +131,9 @@ const AppContent: React.FC = () => {
   return (
     <ConfigProvider locale={zhCN} theme={antdTheme}>
       <BrowserRouter>
+        {/* Global alarm sound that works on all pages */}
+        <GlobalAlarmSound />
+        
         <Routes>
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
@@ -150,8 +155,8 @@ const AppContent: React.FC = () => {
             <Route path="report" element={<DataReport />} />
             <Route path="alarm" element={<AlarmManagement />} />
             <Route path="alarm/history" element={<AlarmHistory />} />
-            <Route path="info" element={<PlaceholderPage title="基础信息" />} />
-            <Route path="system" element={<PlaceholderPage title="系统管理" />} />
+            <Route path="info" element={<BasicInfo />} />
+            <Route path="system" element={<SystemSettings />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>

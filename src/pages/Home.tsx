@@ -1,14 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { Row, Col, Spin } from 'antd';
-import StatisticsPanel from '../components/Dashboard/StatisticsPanel';
-import StatusCard from '../components/Dashboard/StatusCard';
-import WellboreDiagram from '../components/WellDiagram/WellboreDiagram';
-import TurbineCurrentGrid from '../components/Dashboard/TurbineCurrentGrid';
+import TopographicMap, { wellPositions } from '../components/Map/TopographicMap';
+import QuickActionCard from '../components/Dashboard/QuickActionCard';
+import RealTimeAlertPanel from '../components/Dashboard/RealTimeAlertPanel';
+import AreaFaultTrendChart from '../components/Charts/AreaFaultTrendChart';
+import AreaFaultDistributionChart from '../components/Charts/AreaFaultDistributionChart';
 import type { Well, Statistics } from '../types';
 import { getWells, getStatistics } from '../services/api';
 import { useAlarm } from '../contexts/AlarmContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useSimulation } from '../contexts/SimulationContext';
+import {
+  DashboardOutlined,
+  ThunderboltOutlined,
+  ExperimentOutlined,
+  CheckCircleOutlined,
+} from '@ant-design/icons';
 
 const Home: React.FC = () => {
   const [wells, setWells] = useState<Well[]>([]);
@@ -53,127 +60,148 @@ const Home: React.FC = () => {
   }
 
   return (
-    <div className="page-container">
-      {/* 页面标题 */}
-      <div style={{
-        background: themeMode === 'dark' 
-          ? 'linear-gradient(135deg, #002244, #003366)'
-          : 'linear-gradient(135deg, #e6f7ff, #bae7ff)',
-        border: themeMode === 'dark' ? '1px solid #1d3a5c' : '1px solid #91d5ff',
-        borderRadius: 8,
-        padding: '20px 24px',
-        marginBottom: 20,
-        position: 'relative',
-        overflow: 'hidden',
-      }}>
-        <div style={{
-          position: 'absolute',
-          top: -20,
-          right: -20,
-          width: 120,
-          height: 120,
-          borderRadius: '50%',
-          background: 'rgba(24,144,255,0.1)',
-        }} />
-        <h1 style={{ 
-          color: themeMode === 'dark' ? '#00ffff' : '#1890ff', 
-          fontSize: 24, 
-          fontWeight: 700, 
-          marginBottom: 8 
-        }}>
-          💧 井下积液工况诊断系统
-        </h1>
-        <p style={{ 
-          color: themeMode === 'dark' ? '#8c9eb5' : '#666666', 
-          fontSize: 14, 
-          margin: 0 
-        }}>
-          基于井管电流监测与水敏电阻网的智能积液诊断系统 | 实时监控 · 智能诊断 · 预警管理
-        </p>
-      </div>
-
-      {/* 统计面板 */}
-      <div className="panel-card">
-        <div className="panel-title">系统概览</div>
-        {stats && <StatisticsPanel stats={stats} />}
-      </div>
-
-      {/* 井筒状态卡片 */}
-      <div className="panel-card">
-        <div className="panel-title">井筒状态总览</div>
-        <Row gutter={[12, 12]}>
-          {wells.map(well => (
-            <Col key={well.id} xs={24} sm={12} md={8} lg={6}>
-              <StatusCard well={well} />
-            </Col>
-          ))}
-        </Row>
-      </div>
-
-      {/* 井筒示意图 */}
-      <div className="panel-card">
-        <div className="panel-title">积液高度可视化</div>
-        <Row gutter={[8, 8]}>
-          {wells.map(well => (
-            <Col key={well.id} xs={12} sm={8} md={6} lg={4}>
-              <div style={{
-                background: '#001529',
-                border: '1px solid #1d3a5c',
-                borderRadius: 8,
+    <div className="page-container" style={{ padding: '12px 16px', minHeight: 'calc(100vh - 120px)', overflow: 'auto' }}>
+      {/* Compact Header with Key Stats */}
+      <Row gutter={[12, 12]} style={{ marginBottom: 12 }}>
+        <Col span={24}>
+          <div style={{
+            background: 'linear-gradient(135deg, #001529, #003366)',
+            border: '1px solid #1d3a5c',
+            borderRadius: 8,
+            padding: '10px 16px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}>
+            <div>
+              <h1 style={{ 
+                color: '#00ffff', 
+                fontSize: 20, 
+                fontWeight: 700, 
+                margin: 0,
+                textShadow: '0 2px 8px rgba(0, 255, 255, 0.3)',
               }}>
-                <WellboreDiagram well={well} />
+                💧 井下积液工况智能监控平台
+              </h1>
+            </div>
+            
+            {/* Inline Key Metrics */}
+            {stats && (
+              <div style={{ display: 'flex', gap: 24 }}>
+                <div style={{ textAlign: 'center' }}>
+                  <DashboardOutlined style={{ fontSize: 20, color: '#1890ff' }} />
+                  <div style={{ color: '#1890ff', fontSize: 18, fontWeight: 700, marginTop: 4 }}>
+                    {stats.totalWells}
+                    <span style={{ fontSize: 11, marginLeft: 4, color: '#8c9eb5' }}>井筒</span>
+                  </div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <CheckCircleOutlined style={{ fontSize: 20, color: '#52c41a' }} />
+                  <div style={{ color: '#52c41a', fontSize: 18, fontWeight: 700, marginTop: 4 }}>
+                    {stats.normalWells}
+                    <span style={{ fontSize: 11, marginLeft: 4, color: '#8c9eb5' }}>正常</span>
+                  </div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <ThunderboltOutlined style={{ fontSize: 20, color: '#faad14' }} />
+                  <div style={{ color: '#faad14', fontSize: 18, fontWeight: 700, marginTop: 4 }}>
+                    {stats.warningWells + stats.faultWells}
+                    <span style={{ fontSize: 11, marginLeft: 4, color: '#8c9eb5' }}>异常</span>
+                  </div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <ExperimentOutlined style={{ fontSize: 20, color: '#00ffff' }} />
+                  <div style={{ color: '#00ffff', fontSize: 18, fontWeight: 700, marginTop: 4 }}>
+                    {stats.avgLiquidHeight.toFixed(0)}
+                    <span style={{ fontSize: 11, marginLeft: 4, color: '#8c9eb5' }}>mm</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </Col>
+      </Row>
+
+      {/* Main Content Row - 200px buffer accounts for header (~90px) + container padding (~24px) + stats panel (~60px) + gaps/margins (~26px) */}
+      <Row gutter={[12, 12]} style={{ minHeight: 'calc(100vh - 200px)' }}>
+        {/* Left Column: Map + Charts */}
+        <Col xs={24} lg={16} style={{ display: 'flex', flexDirection: 'column' }}>
+          {/* Map Section */}
+          <div className="panel-card" style={{ 
+            marginBottom: 12, 
+            height: '550px',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden'
+          }}>
+            <div className="panel-title" style={{ padding: '8px 12px', fontSize: 14 }}>
+              🗺️ 井场地形图 - 实时监控
+            </div>
+            <div style={{ flex: 1, overflow: 'hidden' }}>
+              <TopographicMap wells={wells} />
+            </div>
+          </div>
+
+          {/* Charts Row */}
+          <Row gutter={[12, 12]} style={{ minHeight: '320px' }}>
+            <Col span={14}>
+              <div className="panel-card" style={{ height: '320px', display: 'flex', flexDirection: 'column' }}>
+                <div className="panel-title" style={{ padding: '6px 12px', fontSize: 13 }}>
+                  📈 区域故障趋势
+                </div>
+                <div style={{ 
+                  flex: 1,
+                  minHeight: '260px', // Ensures sufficient height for chart rendering (container 320px - title ~30px - padding ~16px)
+                  background: 'rgba(0, 42, 74, 0.3)', 
+                  borderRadius: 8, 
+                  padding: '8px',
+                  border: '1px solid rgba(0, 200, 255, 0.1)',
+                  overflow: 'hidden'
+                }}>
+                  <AreaFaultTrendChart wells={wells} wellPositions={wellPositions} />
+                </div>
               </div>
             </Col>
-          ))}
-        </Row>
-      </div>
-
-      {/* 涡轮机电流实时监控 */}
-      <div className="panel-card">
-        <div className="panel-title">涡轮机电流实时监控</div>
-        <TurbineCurrentGrid wells={wells} />
-      </div>
-
-      {/* 运行说明 */}
-      <div className="panel-card">
-        <div className="panel-title">诊断方法说明</div>
-        <Row gutter={[16, 16]}>
-          <Col xs={24} md={12}>
-            <div style={{
-              background: '#001529',
-              border: '1px solid #1d3a5c',
-              borderRadius: 8,
-              padding: 16,
-            }}>
-              <div style={{ color: '#faad14', fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
-                ⚡ 电流诊断法
+            
+            <Col span={10}>
+              <div className="panel-card" style={{ height: '320px', display: 'flex', flexDirection: 'column' }}>
+                <div className="panel-title" style={{ padding: '6px 12px', fontSize: 13 }}>
+                  🥧 故障分布
+                </div>
+                <div style={{ 
+                  flex: 1,
+                  minHeight: '260px', // Ensures sufficient height for chart rendering (container 320px - title ~30px - padding ~16px)
+                  background: 'rgba(0, 42, 74, 0.3)', 
+                  borderRadius: 8, 
+                  padding: '8px',
+                  border: '1px solid rgba(0, 200, 255, 0.1)',
+                  overflow: 'hidden'
+                }}>
+                  <AreaFaultDistributionChart wells={wells} wellPositions={wellPositions} />
+                </div>
               </div>
-              <ul style={{ color: '#8c9eb5', fontSize: 13, paddingLeft: 20, lineHeight: 2 }}>
-                <li>电流突降超过 <span style={{ color: '#ff4d4f' }}>30%</span> → 疑似积液</li>
-                <li>电流波动幅度超过 <span style={{ color: '#faad14' }}>20%</span> → 含气预警</li>
-                <li>电流持续低于额定值 <span style={{ color: '#ff4d4f' }}>50%</span> → 严重积液</li>
-              </ul>
+            </Col>
+          </Row>
+        </Col>
+
+        {/* Right Column: Alerts + Quick Actions */}
+        <Col xs={24} lg={8} style={{ display: 'flex', flexDirection: 'column' }}>
+          {/* Real-time Alerts - Top Right */}
+          <div style={{ height: '550px', marginBottom: 12, overflow: 'hidden' }}>
+            <RealTimeAlertPanel />
+          </div>
+
+          {/* Quick Actions - Bottom Right */}
+          <div className="panel-card" style={{ minHeight: '320px', overflow: 'auto' }}>
+            <div className="panel-title" style={{ padding: '8px 12px', fontSize: 14 }}>
+              🚀 快速导航
             </div>
-          </Col>
-          <Col xs={24} md={12}>
-            <div style={{
-              background: '#001529',
-              border: '1px solid #1d3a5c',
-              borderRadius: 8,
-              padding: 16,
-            }}>
-              <div style={{ color: '#1890ff', fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
-                💧 水敏电阻网诊断法
-              </div>
-              <ul style={{ color: '#8c9eb5', fontSize: 13, paddingLeft: 20, lineHeight: 2 }}>
-                <li>电阻值低于 <span style={{ color: '#1890ff' }}>1000Ω</span> → 该深度有液</li>
-                <li>连续多个传感器检测到积液 → 确定积液高度范围</li>
-                <li>综合两种方法进行置信度加权诊断</li>
-              </ul>
+            <div style={{ padding: '8px' }}>
+              <QuickActionCard />
             </div>
-          </Col>
-        </Row>
-      </div>
+          </div>
+        </Col>
+      </Row>
     </div>
   );
 };
