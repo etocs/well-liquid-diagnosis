@@ -41,7 +41,7 @@ const quickActions: QuickAction[] = [
     title: '系统管理',
     icon: <SettingOutlined />,
     description: '系统配置与参数设置',
-    path: '/settings',
+    path: '/system',
     color: '#722ed1',
   },
 ];
