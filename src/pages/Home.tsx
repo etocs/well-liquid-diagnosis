@@ -122,7 +122,7 @@ const Home: React.FC = () => {
         </Col>
       </Row>
 
-      {/* Main Content Row */}
+      {/* Main Content Row - 200px buffer accounts for header (~90px) + container padding (~24px) + stats panel (~60px) + gaps/margins (~26px) */}
       <Row gutter={[12, 12]} style={{ minHeight: 'calc(100vh - 200px)' }}>
         {/* Left Column: Map + Charts */}
         <Col xs={24} lg={16} style={{ display: 'flex', flexDirection: 'column' }}>
@@ -151,7 +151,7 @@ const Home: React.FC = () => {
                 </div>
                 <div style={{ 
                   flex: 1,
-                  minHeight: '260px',
+                  minHeight: '260px', // Ensures sufficient height for chart rendering (container 320px - title ~30px - padding ~16px)
                   background: 'rgba(0, 42, 74, 0.3)', 
                   borderRadius: 8, 
                   padding: '8px',
@@ -170,7 +170,7 @@ const Home: React.FC = () => {
                 </div>
                 <div style={{ 
                   flex: 1,
-                  minHeight: '260px',
+                  minHeight: '260px', // Ensures sufficient height for chart rendering (container 320px - title ~30px - padding ~16px)
                   background: 'rgba(0, 42, 74, 0.3)', 
                   borderRadius: 8, 
                   padding: '8px',
