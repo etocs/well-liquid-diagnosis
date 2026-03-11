@@ -60,7 +60,7 @@ const Home: React.FC = () => {
   }
 
   return (
-    <div className="page-container" style={{ padding: '12px 16px', height: 'calc(100vh - 120px)', overflow: 'hidden' }}>
+    <div className="page-container" style={{ padding: '12px 16px', minHeight: 'calc(100vh - 120px)', overflow: 'auto' }}>
       {/* Compact Header with Key Stats */}
       <Row gutter={[12, 12]} style={{ marginBottom: 12 }}>
         <Col span={24}>
@@ -123,13 +123,13 @@ const Home: React.FC = () => {
       </Row>
 
       {/* Main Content Row */}
-      <Row gutter={[12, 12]} style={{ height: 'calc(100% - 90px)' }}>
+      <Row gutter={[12, 12]} style={{ minHeight: 'calc(100vh - 200px)' }}>
         {/* Left Column: Map + Charts */}
-        <Col xs={24} lg={16} style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <Col xs={24} lg={16} style={{ display: 'flex', flexDirection: 'column' }}>
           {/* Map Section */}
           <div className="panel-card" style={{ 
             marginBottom: 12, 
-            flex: '0 0 55%',
+            height: '450px',
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden'
@@ -143,14 +143,15 @@ const Home: React.FC = () => {
           </div>
 
           {/* Charts Row */}
-          <Row gutter={[12, 12]} style={{ flex: 1, minHeight: 0 }}>
+          <Row gutter={[12, 12]} style={{ minHeight: '320px' }}>
             <Col span={14}>
-              <div className="panel-card" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <div className="panel-card" style={{ height: '320px', display: 'flex', flexDirection: 'column' }}>
                 <div className="panel-title" style={{ padding: '6px 12px', fontSize: 13 }}>
                   📈 区域故障趋势
                 </div>
                 <div style={{ 
                   flex: 1,
+                  minHeight: '260px',
                   background: 'rgba(0, 42, 74, 0.3)', 
                   borderRadius: 8, 
                   padding: '8px',
@@ -163,12 +164,13 @@ const Home: React.FC = () => {
             </Col>
             
             <Col span={10}>
-              <div className="panel-card" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <div className="panel-card" style={{ height: '320px', display: 'flex', flexDirection: 'column' }}>
                 <div className="panel-title" style={{ padding: '6px 12px', fontSize: 13 }}>
                   🥧 故障分布
                 </div>
                 <div style={{ 
                   flex: 1,
+                  minHeight: '260px',
                   background: 'rgba(0, 42, 74, 0.3)', 
                   borderRadius: 8, 
                   padding: '8px',
@@ -183,14 +185,14 @@ const Home: React.FC = () => {
         </Col>
 
         {/* Right Column: Alerts + Quick Actions */}
-        <Col xs={24} lg={8} style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <Col xs={24} lg={8} style={{ display: 'flex', flexDirection: 'column' }}>
           {/* Real-time Alerts - Top Right */}
-          <div style={{ flex: '0 0 55%', marginBottom: 12, overflow: 'hidden' }}>
+          <div style={{ height: '450px', marginBottom: 12, overflow: 'hidden' }}>
             <RealTimeAlertPanel />
           </div>
 
           {/* Quick Actions - Bottom Right */}
-          <div className="panel-card" style={{ flex: 1, overflow: 'auto' }}>
+          <div className="panel-card" style={{ minHeight: '320px', overflow: 'auto' }}>
             <div className="panel-title" style={{ padding: '8px 12px', fontSize: 14 }}>
               🚀 快速导航
             </div>
