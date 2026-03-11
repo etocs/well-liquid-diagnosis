@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import ReactECharts from 'echarts-for-react';
 import type { Well } from '../../types';
 
@@ -14,6 +14,7 @@ interface AreaFaultData {
 
 const AreaFaultTrendChart: React.FC<Props> = ({ wells, wellPositions }) => {
   const [trendData, setTrendData] = useState<AreaFaultData[]>([]);
+  const chartRef = useRef<any>(null);
 
   useEffect(() => {
     // Calculate faults by area
@@ -38,6 +39,16 @@ const AreaFaultTrendChart: React.FC<Props> = ({ wells, wellPositions }) => {
       return newData.slice(-20);
     });
   }, [wells, wellPositions]);
+
+  // Handle window resize to properly resize chart
+  useEffect(() => {
+    const handleResize = () => {
+      chartRef.current?.getEchartsInstance()?.resize();
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const option = {
     backgroundColor: 'transparent',
@@ -324,7 +335,7 @@ const AreaFaultTrendChart: React.FC<Props> = ({ wells, wellPositions }) => {
     ]
   };
 
-  return <ReactECharts option={option} style={{ height: '100%', width: '100%' }} />;
+  return <ReactECharts ref={chartRef} option={option} style={{ height: '100%', width: '100%' }} />;
 };
 
 export default AreaFaultTrendChart;

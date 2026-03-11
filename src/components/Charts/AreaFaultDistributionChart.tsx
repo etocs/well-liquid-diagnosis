@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import ReactECharts from 'echarts-for-react';
 import type { Well } from '../../types';
 
@@ -8,6 +8,18 @@ interface Props {
 }
 
 const AreaFaultDistributionChart: React.FC<Props> = ({ wells, wellPositions }) => {
+  const chartRef = useRef<any>(null);
+
+  // Handle window resize to properly resize chart
+  useEffect(() => {
+    const handleResize = () => {
+      chartRef.current?.getEchartsInstance()?.resize();
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // Calculate faults by area
   const areaData = ['A', 'B', 'C', 'D', 'E', 'F'].map(area => {
     const areaWells = wells.filter(w => wellPositions[w.id]?.area === area);
@@ -153,7 +165,7 @@ const AreaFaultDistributionChart: React.FC<Props> = ({ wells, wellPositions }) =
     ]
   };
 
-  return <ReactECharts option={option} style={{ height: '100%', width: '100%' }} />;
+  return <ReactECharts ref={chartRef} option={option} style={{ height: '100%', width: '100%' }} />;
 };
 
 export default AreaFaultDistributionChart;
