@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Button, Space, Tooltip, Input, Modal, Form, Badge } from 'antd';
+import { Button, Space, Tooltip, Input, Modal, Form, Badge, Alert } from 'antd';
 import {
   PlayCircleOutlined,
   PauseCircleOutlined,
@@ -221,13 +221,42 @@ const SimulationControl: React.FC = () => {
             {'{ "wellName": "xxx", "current": 18.5, "resistance": 850 }'}
           </code>
         </div>
-        <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
+
+        {/* CORS tip — shown when there is an active connection error */}
+        {apiError && !apiConnected && (
+          <Alert
+            type="warning"
+            showIcon
+            style={{ marginBottom: 12, fontSize: 12 }}
+            message="跨域(CORS)或网络连接问题"
+            description={
+              <div style={{ fontSize: 11, lineHeight: 1.7 }}>
+                浏览器报告 <b>Failed to fetch</b> 通常有两种原因：<br />
+                ① <b>服务未启动</b>或地址填写错误 — 请确认目标服务可访问。<br />
+                ② <b>CORS 限制</b> — 目标服务未返回 <code>Access-Control-Allow-Origin</code> 响应头。<br />
+                <b>开发环境解决方案（Vite 代理）：</b><br />
+                在项目根目录创建 <code>.env.local</code> 文件，写入：<br />
+                <code>VITE_API_PROXY_TARGET=http://localhost:8080</code><br />
+                重启开发服务器，再将接口地址改为 <code>/api-proxy/data</code>（相对路径），
+                Vite 会代理转发请求从而绕过 CORS。
+              </div>
+            }
+          />
+        )}
+
+        <Form form={form} layout="vertical" style={{ marginTop: 8 }}>
           <Form.Item
             label="接口地址 (URL)"
             name="url"
             rules={[{ required: true, message: '请填写接口地址' }]}
+            extra={
+              <span style={{ fontSize: 11 }}>
+                跨域问题可改用代理路径，如 <code>/api-proxy/data</code>
+                （需在 .env.local 中设置 VITE_API_PROXY_TARGET）
+              </span>
+            }
           >
-            <Input placeholder="http://your-api-host/api/realtime" />
+            <Input placeholder="http://localhost:8080/data 或 /api-proxy/data" />
           </Form.Item>
           <Form.Item
             label="井名称（覆盖接口返回的 wellName）"

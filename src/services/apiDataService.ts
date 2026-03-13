@@ -115,16 +115,20 @@ export class ApiDataService {
   configure(config: ApiConfig) {
     this.config = config;
     if (config.enabled) {
-      // Validate URL before connecting
-      try {
-        const parsed = new URL(config.url);
-        if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-          this.addLog('error', `无效的URL协议 "${parsed.protocol}"，请使用 http:// 或 https://`);
+      // Validate URL - accept both absolute URLs (http/https) and relative paths
+      // (relative paths go through the Vite dev proxy and naturally avoid CORS).
+      const isRelative = config.url.startsWith('/');
+      if (!isRelative) {
+        try {
+          const parsed = new URL(config.url);
+          if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+            this.addLog('error', `无效的URL协议 "${parsed.protocol}"，请使用 http:// 或 https://`);
+            return;
+          }
+        } catch {
+          this.addLog('error', `无效的URL格式: ${config.url}`);
           return;
         }
-      } catch {
-        this.addLog('error', `无效的URL格式: ${config.url}`);
-        return;
       }
       this.addLog('info', `开始连接: ${config.url}`);
       this.connect();
@@ -173,7 +177,9 @@ export class ApiDataService {
     if (!this.config?.url) return;
 
     try {
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      // Only send Authorization header when needed; avoid Content-Type on GET
+      // requests because it triggers a CORS preflight which many servers reject.
+      const headers: Record<string, string> = {};
       if (this.config.apiKey) {
         headers['Authorization'] = `Bearer ${this.config.apiKey}`;
       }
@@ -197,6 +203,23 @@ export class ApiDataService {
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
       this.addLog('error', `请求异常: ${msg}  [${this.config.url}]`);
+
+      // "Failed to fetch" / "Load failed" / "NetworkError" are the browser's way
+      // of reporting a CORS block or an unreachable server; give a targeted hint.
+      const lower = msg.toLowerCase();
+      if (
+        lower.includes('failed to fetch') ||
+        lower.includes('load failed') ||
+        lower.includes('networkerror') ||
+        lower.includes('network request failed')
+      ) {
+        this.addLog(
+          'error',
+          '可能原因: ① 目标服务未启动或地址错误  ② 跨域(CORS)限制 — 请确保服务器返回 ' +
+          'Access-Control-Allow-Origin 响应头，或在 Vite 配置中启用代理（见接口地址输入框提示）。',
+        );
+      }
+
       this.setConnected(false, msg);
     }
   }
