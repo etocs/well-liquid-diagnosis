@@ -4,6 +4,16 @@ import { formatDateTime } from '../utils/date';
 import { RESISTANCE_THRESHOLD } from '../utils/constants';
 import dayjs from 'dayjs';
 
+// -------- Request log entry --------
+
+export type LogLevel = 'info' | 'success' | 'error';
+
+export interface RequestLogEntry {
+  time: string;        // HH:mm:ss
+  level: LogLevel;
+  message: string;
+}
+
 /**
  * 根据水敏电阻值估算积液高度 (mm)
  * 水敏电阻值越低 → 液体越多
@@ -56,13 +66,67 @@ export class ApiDataService {
   private lastAlarmTime: number = 0;
   private readonly ALARM_INTERVAL_MS = 30_000; // 最多每30秒产生一次告警
 
+  private logs: RequestLogEntry[] = [];
+  private readonly MAX_LOG_ENTRIES = 50;
+
   private updateCallbacks: Array<(wells: Well[]) => void> = [];
   private statusCallbacks: Array<(connected: boolean, error?: string) => void> = [];
+  private logCallbacks: Array<(logs: RequestLogEntry[]) => void> = [];
+
+  // -------- Logging helpers --------
+
+  private addLog(level: LogLevel, message: string) {
+    const entry: RequestLogEntry = {
+      time: dayjs().format('HH:mm:ss'),
+      level,
+      message,
+    };
+    this.logs.push(entry);
+    if (this.logs.length > this.MAX_LOG_ENTRIES) {
+      this.logs.shift();
+    }
+    this.notifyLogs();
+  }
+
+  clearLogs() {
+    this.logs = [];
+    this.notifyLogs();
+  }
+
+  getLogs(): RequestLogEntry[] {
+    return [...this.logs];
+  }
+
+  /** 订阅日志变化，返回取消订阅函数 */
+  onLogUpdate(callback: (logs: RequestLogEntry[]) => void): () => void {
+    this.logCallbacks.push(callback);
+    callback([...this.logs]);
+    return () => {
+      this.logCallbacks = this.logCallbacks.filter(cb => cb !== callback);
+    };
+  }
+
+  private notifyLogs() {
+    const snapshot = [...this.logs];
+    this.logCallbacks.forEach(cb => cb(snapshot));
+  }
 
   /** 设置/更新配置；enabled=true 时自动连接 */
   configure(config: ApiConfig) {
     this.config = config;
     if (config.enabled) {
+      // Validate URL before connecting
+      try {
+        const parsed = new URL(config.url);
+        if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+          this.addLog('error', `无效的URL协议 "${parsed.protocol}"，请使用 http:// 或 https://`);
+          return;
+        }
+      } catch {
+        this.addLog('error', `无效的URL格式: ${config.url}`);
+        return;
+      }
+      this.addLog('info', `开始连接: ${config.url}`);
       this.connect();
     } else {
       this.disconnect();
@@ -82,6 +146,9 @@ export class ApiDataService {
   /** 停止轮询，清除数据 */
   disconnect() {
     this.stopPolling();
+    if (this.isConnected) {
+      this.addLog('info', '已断开连接');
+    }
     this.isConnected = false;
     this.well = null;
     this.currentHistory = [];
@@ -113,15 +180,23 @@ export class ApiDataService {
 
       const response = await fetch(this.config.url, { headers });
       if (!response.ok) {
+        const errMsg = `HTTP ${response.status} ${response.statusText || ''}`.trim();
+        this.addLog('error', `请求失败: ${errMsg}  [${this.config.url}]`);
         this.setConnected(false, `HTTP ${response.status}`);
         return;
       }
 
       const data: ApiDataPoint = await response.json();
+      const liquidHeight = Math.round(resistanceToLiquidHeight(data.resistance) * 10) / 10;
+      this.addLog(
+        'success',
+        `请求成功 → wellName="${data.wellName}" current=${data.current}A resistance=${data.resistance}Ω liquidHeight≈${liquidHeight}mm`,
+      );
       this.processDataPoint(data);
       this.setConnected(true);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
+      this.addLog('error', `请求异常: ${msg}  [${this.config.url}]`);
       this.setConnected(false, msg);
     }
   }
@@ -137,9 +212,7 @@ export class ApiDataService {
 
   private processDataPoint(data: ApiDataPoint) {
     const now = dayjs().format('HH:mm:ss');
-    const wellName = (this.config?.wellName && this.config.wellName.trim())
-      ? this.config.wellName
-      : data.wellName;
+    const wellName = this.config?.wellName?.trim() || data.wellName;
 
     const liquidHeight = Math.round(resistanceToLiquidHeight(data.resistance) * 10) / 10;
     const status = liquidHeightToStatus(liquidHeight, data.current);

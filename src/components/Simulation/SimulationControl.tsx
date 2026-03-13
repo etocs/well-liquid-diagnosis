@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button, Space, Tooltip, Input, Modal, Form, Badge } from 'antd';
 import {
   PlayCircleOutlined,
@@ -8,10 +8,12 @@ import {
   CheckCircleOutlined,
   CloseCircleOutlined,
   DisconnectOutlined,
+  ClearOutlined,
 } from '@ant-design/icons';
 import { useSimulation } from '../../contexts/SimulationContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { getApiDataService } from '../../services/apiDataService';
+import type { RequestLogEntry } from '../../services/apiDataService';
 import type { ApiConfig } from '../../types';
 
 const SimulationControl: React.FC = () => {
@@ -21,6 +23,8 @@ const SimulationControl: React.FC = () => {
   const [apiModalVisible, setApiModalVisible] = useState(false);
   const [apiConnected, setApiConnected] = useState(false);
   const [apiError, setApiError] = useState<string | undefined>();
+  const [logs, setLogs] = useState<RequestLogEntry[]>([]);
+  const logEndRef = useRef<HTMLDivElement>(null);
   const [form] = Form.useForm<{ url: string; wellName: string; apiKey: string }>();
 
   useEffect(() => {
@@ -30,13 +34,27 @@ const SimulationControl: React.FC = () => {
       form.setFieldsValue({ url: cfg.url, wellName: cfg.wellName, apiKey: cfg.apiKey || '' });
     }
     setApiConnected(svc.getIsConnected());
+    setLogs(svc.getLogs());
 
-    const unsubscribe = svc.onStatusChange((connected, error) => {
+    const unsubStatus = svc.onStatusChange((connected, error) => {
       setApiConnected(connected);
       setApiError(error);
     });
-    return unsubscribe;
+    const unsubLog = svc.onLogUpdate((entries) => {
+      setLogs([...entries]);
+    });
+    return () => {
+      unsubStatus();
+      unsubLog();
+    };
   }, [form]);
+
+  // Auto-scroll log to bottom on new entries
+  useEffect(() => {
+    if (apiModalVisible && logEndRef.current) {
+      logEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [logs, apiModalVisible]);
 
   const handleConnect = () => {
     form.validateFields().then(values => {
@@ -50,7 +68,7 @@ const SimulationControl: React.FC = () => {
         localStorage.setItem('apiDataConfig', JSON.stringify(config));
       } catch (_) { /* ignore */ }
       getApiDataService().configure(config);
-      setApiModalVisible(false);
+      // Keep modal open so the user can watch the log
     });
   };
 
@@ -173,11 +191,25 @@ const SimulationControl: React.FC = () => {
           </span>
         }
         open={apiModalVisible}
-        onOk={handleConnect}
         onCancel={() => setApiModalVisible(false)}
-        okText="连接"
-        cancelText="取消"
-        width={480}
+        width={520}
+        footer={[
+          <Button key="clear" icon={<ClearOutlined />} onClick={() => getApiDataService().clearLogs()} size="small">
+            清空日志
+          </Button>,
+          <Button key="cancel" onClick={() => setApiModalVisible(false)}>
+            关闭
+          </Button>,
+          apiConnected ? (
+            <Button key="disconnect" danger icon={<DisconnectOutlined />} onClick={handleDisconnect}>
+              断开连接
+            </Button>
+          ) : (
+            <Button key="connect" type="primary" icon={<ApiOutlined />} onClick={handleConnect}>
+              连接
+            </Button>
+          ),
+        ]}
       >
         <div style={{ marginBottom: 12, fontSize: 13, color: '#8c9eb5', lineHeight: 1.6 }}>
           填写实测数据接口地址后点击「连接」，系统将每秒从该接口拉取电流和电阻值，并自动进行积液故障诊断，
@@ -208,6 +240,64 @@ const SimulationControl: React.FC = () => {
             <Input.Password placeholder="Bearer Token（如无可留空）" />
           </Form.Item>
         </Form>
+
+        {/* ---- Request Log Panel ---- */}
+        <div style={{ marginTop: 4 }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: 6,
+          }}>
+            <span style={{ fontSize: 12, color: '#8c9eb5', fontWeight: 600 }}>请求日志</span>
+            <span style={{ fontSize: 11, color: '#8c9eb5' }}>
+              {apiConnected ? (
+                <span style={{ color: '#52c41a' }}><CheckCircleOutlined /> 已连接</span>
+              ) : (
+                <span style={{ color: apiError ? '#ff4d4f' : '#8c9eb5' }}>
+                  <CloseCircleOutlined /> {apiError ? `错误: ${apiError}` : '未连接'}
+                </span>
+              )}
+            </span>
+          </div>
+          <div style={{
+            background: '#000d1a',
+            border: '1px solid #1d3a5c',
+            borderRadius: 6,
+            padding: '8px 10px',
+            height: 180,
+            overflowY: 'auto',
+            fontFamily: 'monospace',
+            fontSize: 11,
+            lineHeight: 1.6,
+          }}>
+            {logs.length === 0 ? (
+              <span style={{ color: '#4a6380' }}>暂无日志。点击「连接」后请求记录将显示在此处。</span>
+            ) : (
+              logs.map((entry, i) => (
+                <div key={i} style={{
+                  color: entry.level === 'success' ? '#52c41a'
+                    : entry.level === 'error' ? '#ff4d4f'
+                    : '#8c9eb5',
+                  marginBottom: 2,
+                  wordBreak: 'break-all',
+                }}>
+                  <span style={{ color: '#4a6380', marginRight: 6 }}>{entry.time}</span>
+                  <span style={{
+                    marginRight: 6,
+                    color: entry.level === 'success' ? '#52c41a'
+                      : entry.level === 'error' ? '#ff4d4f'
+                      : '#1890ff',
+                  }}>
+                    [{entry.level === 'success' ? 'OK ' : entry.level === 'error' ? 'ERR' : 'INF'}]
+                  </span>
+                  {entry.message}
+                </div>
+              ))
+            )}
+            <div ref={logEndRef} />
+          </div>
+        </div>
       </Modal>
     </>
   );
