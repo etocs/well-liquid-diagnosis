@@ -43,7 +43,7 @@ function liquidHeightToTurbineStatus(status: 'normal' | 'warning' | 'fault'): 'n
   return 'normal';
 }
 
-const API_WELL_ID = 'API-001';
+export const API_WELL_ID = 'API-001';
 const API_ZONE = 'API区';
 
 export class ApiDataService {
@@ -129,7 +129,8 @@ export class ApiDataService {
   private setConnected(connected: boolean, error?: string) {
     const changed = this.isConnected !== connected;
     this.isConnected = connected;
-    if (changed) {
+    // Always notify on error so the first-connection failure is visible in the UI
+    if (changed || (!connected && error)) {
       this.notifyStatus(connected, error);
     }
   }
@@ -246,15 +247,21 @@ export class ApiDataService {
     return [...this.currentHistory];
   }
 
-  /** 订阅井数据变化 */
-  onUpdate(callback: (wells: Well[]) => void) {
+  /** 订阅井数据变化，返回取消订阅函数 */
+  onUpdate(callback: (wells: Well[]) => void): () => void {
     this.updateCallbacks.push(callback);
     callback(this.well ? [this.well] : []);
+    return () => {
+      this.updateCallbacks = this.updateCallbacks.filter(cb => cb !== callback);
+    };
   }
 
-  /** 订阅连接状态变化 */
-  onStatusChange(callback: (connected: boolean, error?: string) => void) {
+  /** 订阅连接状态变化，返回取消订阅函数 */
+  onStatusChange(callback: (connected: boolean, error?: string) => void): () => void {
     this.statusCallbacks.push(callback);
+    return () => {
+      this.statusCallbacks = this.statusCallbacks.filter(cb => cb !== callback);
+    };
   }
 
   private notifyUpdates() {

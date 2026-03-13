@@ -31,10 +31,11 @@ const SimulationControl: React.FC = () => {
     }
     setApiConnected(svc.getIsConnected());
 
-    svc.onStatusChange((connected, error) => {
+    const unsubscribe = svc.onStatusChange((connected, error) => {
       setApiConnected(connected);
       setApiError(error);
     });
+    return unsubscribe;
   }, [form]);
 
   const handleConnect = () => {

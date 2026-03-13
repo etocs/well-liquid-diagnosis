@@ -10,6 +10,7 @@ import { getWells, getStatistics } from '../services/api';
 import { useAlarm } from '../contexts/AlarmContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useSimulation } from '../contexts/SimulationContext';
+import { getApiDataService, API_WELL_ID } from '../services/apiDataService';
 import {
   DashboardOutlined,
   ThunderboltOutlined,
@@ -33,6 +34,34 @@ const Home: React.FC = () => {
       checkAlarms(w);
       setLoading(false);
     });
+  }, [checkAlarms]);
+
+  // Subscribe to API data service updates so the API well appears even without simulation
+  useEffect(() => {
+    const apiSvc = getApiDataService();
+    const unsubscribe = apiSvc.onUpdate((apiWells) => {
+      if (apiWells.length > 0) {
+        const apiWell = apiWells[0];
+        setWells(prev => {
+          const exists = prev.some(w => w.id === apiWell.id);
+          const next = exists
+            ? prev.map(w => (w.id === apiWell.id ? apiWell : w))
+            : [...prev, apiWell];
+          checkAlarms(next);
+          return next;
+        });
+        getStatistics().then(s => setStats(s));
+      } else {
+        // API disconnected – remove API well
+        setWells(prev => {
+          const next = prev.filter(w => w.id !== API_WELL_ID);
+          checkAlarms(next);
+          return next;
+        });
+        getStatistics().then(s => setStats(s));
+      }
+    });
+    return unsubscribe;
   }, [checkAlarms]);
 
   // Refresh data periodically when simulation is running
