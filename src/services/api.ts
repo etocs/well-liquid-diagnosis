@@ -3,12 +3,24 @@ import { wells as staticWells, alarmRecords, monitorDataMap, resistanceDataMap }
 import { PROCESS_RESULT } from '../utils/constants';
 import { formatDateTime } from '../utils/date';
 import { getSimulationService } from './simulation';
+import { getApiDataService } from './apiDataService';
 
-// Get wells from simulation service
+// Get wells from simulation service + any connected API well
 function getWellsData(): Well[] {
   const simulationService = getSimulationService();
   const simWells = simulationService.getWells();
-  return simWells.length > 0 ? simWells : staticWells;
+  const base = simWells.length > 0 ? simWells : staticWells;
+
+  const apiWell = getApiDataService().getWell();
+  if (apiWell) {
+    // Replace if already present (same id), otherwise append
+    const exists = base.some(w => w.id === apiWell.id);
+    if (exists) {
+      return base.map(w => (w.id === apiWell.id ? apiWell : w));
+    }
+    return [...base, apiWell];
+  }
+  return base;
 }
 
 // 模拟网络延迟
@@ -68,12 +80,22 @@ export async function processAlarm(alarmId: string): Promise<AlarmRecord> {
 // ============ 监测数据接口 ============
 export async function getMonitorData(wellId: string): Promise<MonitorDataPoint[]> {
   await delay(200);
+  // API接入井 → 返回实时电流历史
+  const apiService = getApiDataService();
+  if (wellId === apiService.getWell()?.id) {
+    return apiService.getCurrentHistory();
+  }
   return monitorDataMap[wellId] || [];
 }
 
 // ============ 涡轮机电流数据接口 ============
 export async function getTurbineCurrentData(wellId: string): Promise<MonitorDataPoint[]> {
   await delay(100);
+  // API接入井 → 使用同一份电流历史
+  const apiService = getApiDataService();
+  if (wellId === apiService.getWell()?.id) {
+    return apiService.getCurrentHistory();
+  }
   const simulationService = getSimulationService();
   return simulationService.getTurbineCurrentHistory(wellId);
 }

@@ -101,3 +101,19 @@ export interface QueryParams {
   pageNum: number;
   pageSize: number;
 }
+
+// API数据接入配置
+export interface ApiConfig {
+  url: string;         // 接口地址
+  wellName: string;    // 井名称
+  apiKey?: string;     // 可选鉴权密钥
+  enabled: boolean;    // 是否已启用
+}
+
+// 外部API返回的单帧数据
+export interface ApiDataPoint {
+  wellName: string;    // 井名字
+  current: number;     // 实时电流 A
+  resistance: number;  // 电阻值 Ω（每秒一个）
+  timestamp?: string;  // 可选时间戳
+}

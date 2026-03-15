@@ -5,6 +5,7 @@ import type { Well, MonitorDataPoint } from '../types';
 import { getWells, getMonitorData } from '../services/api';
 import { STATUS_COLORS, STATUS_LABELS } from '../utils/constants';
 import { useSimulation } from '../contexts/SimulationContext';
+import { getApiDataService, API_WELL_ID } from '../services/apiDataService';
 
 const CurrentMonitor: React.FC = () => {
   const [wells, setWells] = useState<Well[]>([]);
@@ -27,6 +28,34 @@ const CurrentMonitor: React.FC = () => {
       setDataMap(map);
       setLoading(false);
     });
+  }, []);
+
+  // Subscribe to API data service updates so the API well appears even without simulation
+  useEffect(() => {
+    const apiSvc = getApiDataService();
+    const unsubscribe = apiSvc.onUpdate((apiWells) => {
+      if (apiWells.length > 0) {
+        const apiWell = apiWells[0];
+        setWells(prev => {
+          const exists = prev.some(w => w.id === apiWell.id);
+          if (!exists) return [...prev, apiWell];
+          return prev.map(w => (w.id === apiWell.id ? apiWell : w));
+        });
+        setDataMap(prev => ({
+          ...prev,
+          [apiWell.id]: apiSvc.getCurrentHistory(),
+        }));
+      } else {
+        // API disconnected – remove API well
+        setWells(prev => prev.filter(w => w.id !== API_WELL_ID));
+        setDataMap(prev => {
+          const next = { ...prev };
+          delete next[API_WELL_ID];
+          return next;
+        });
+      }
+    });
+    return unsubscribe;
   }, []);
 
   // Refresh data periodically when simulation is running
